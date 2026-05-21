@@ -50,6 +50,7 @@ class AnimeController extends Controller
         $animeList = [];
         $trendingList = [];
         $popularList = [];
+        $latestList = [];
 
         if ($search) {
             // Search query AniList
@@ -82,7 +83,7 @@ class AnimeController extends Controller
             $data = $this->queryAniList($query, ['search' => $search, 'page' => 1, 'perPage' => 24]);
             $animeList = $data['Page']['media'] ?? [];
         } else {
-            // Fetch Trending and Popular
+            // Fetch Trending, Popular, and Latest
             $query = '
             query ($page: Int, $perPage: Int) {
                 trending: Page (page: $page, perPage: $perPage) {
@@ -108,7 +109,29 @@ class AnimeController extends Controller
                     }
                 }
                 popular: Page (page: $page, perPage: $perPage) {
-                    media (type: ANIME, sort: POPULAR_DESC) {
+                    media (type: ANIME, sort: POPULARITY_DESC) {
+                        id
+                        idMal
+                        title {
+                            romaji
+                            english
+                            native
+                        }
+                        coverImage {
+                            extraLarge
+                            large
+                        }
+                        bannerImage
+                        description
+                        episodes
+                        genres
+                        averageScore
+                        seasonYear
+                        status
+                    }
+                }
+                latest: Page (page: $page, perPage: $perPage) {
+                    media (type: ANIME, sort: START_DATE_DESC, status_not: NOT_YET_RELEASED) {
                         id
                         idMal
                         title {
@@ -134,9 +157,10 @@ class AnimeController extends Controller
             $data = $this->queryAniList($query, ['page' => 1, 'perPage' => 12]);
             $trendingList = $data['trending']['media'] ?? [];
             $popularList = $data['popular']['media'] ?? [];
+            $latestList = $data['latest']['media'] ?? [];
         }
 
-        return view('anime.index', compact('animeList', 'trendingList', 'popularList', 'search'));
+        return view('anime.index', compact('animeList', 'trendingList', 'popularList', 'latestList', 'search'));
     }
 
     /**
@@ -166,6 +190,9 @@ class AnimeController extends Controller
                 averageScore
                 seasonYear
                 status
+                nextAiringEpisode {
+                    episode
+                }
                 studios(isMain: true) {
                     nodes {
                         name
@@ -208,12 +235,15 @@ class AnimeController extends Controller
         // 3. Fetch episode servers for current episode
         $servers = $this->gogoService->getEpisodeServers($slug, $episode);
         
-        // 4. Calculate total episodes
+        // 4. Calculate total episodes based on aired status
         $totalEpisodes = $anime['episodes'] ?? 0;
         
-        // Fallback: If AniList says 0 episodes (ongoing), but we are watching, set an arbitrary high number or let users navigate
-        if ($totalEpisodes <= 0) {
-            $totalEpisodes = max($episode + 1, 24); // Fallback for ongoing shows
+        if ($anime['status'] === 'RELEASING' && isset($anime['nextAiringEpisode']['episode'])) {
+            $totalEpisodes = $anime['nextAiringEpisode']['episode'] - 1;
+        } elseif ($anime['status'] === 'NOT_YET_RELEASED') {
+            $totalEpisodes = 0;
+        } elseif ($totalEpisodes <= 0) {
+            $totalEpisodes = max($episode + 1, 24); // Fallback for ongoing shows without known total
         }
 
         // 5. Setup premium fallback servers (like embed.su or vidlink.pro) using MAL ID
@@ -221,14 +251,24 @@ class AnimeController extends Controller
         $fallbackServers = [];
         if ($malId) {
             $fallbackServers[] = [
-                'name' => 'Premium Server 1 (Embed.su)',
+                'name' => 'Server 1 (VidLink - Sub)',
+                'class' => 'vidlink',
+                'url' => "https://vidlink.pro/anime/{$malId}/{$episode}/sub?fallback=true"
+            ];
+            $fallbackServers[] = [
+                'name' => 'Server 2 (VidLink - Dub)',
+                'class' => 'vidlink-dub',
+                'url' => "https://vidlink.pro/anime/{$malId}/{$episode}/dub?fallback=true"
+            ];
+            $fallbackServers[] = [
+                'name' => 'Server 3 (Embed.su)',
                 'class' => 'embedsu',
                 'url' => "https://embed.su/embed/anime/{$malId}/{$episode}"
             ];
             $fallbackServers[] = [
-                'name' => 'Premium Server 2 (VidLink)',
-                'class' => 'vidlink',
-                'url' => "https://vidlink.pro/embed/anime/{$malId}/{$episode}"
+                'name' => 'Server 4 (2Anime)',
+                'class' => 'twoanime',
+                'url' => "https://2anime.xyz/embed/{$malId}/{$episode}"
             ];
         }
 

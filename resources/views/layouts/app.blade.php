@@ -15,9 +15,6 @@
 </head>
 <body>
 
-    <!-- Falling Sakura & Electro particles background canvas -->
-    <canvas id="sakura-canvas"></canvas>
-
     <!-- Navigation Bar -->
     <nav class="navbar">
         <a href="{{ route('anime.index') }}" class="nav-brand">
@@ -53,10 +50,10 @@
     <!-- Footer -->
     <footer style="margin-top: 5rem; padding: 2.5rem 0; border-top: 1px solid var(--glass-border); background: rgba(8, 5, 22, 0.8); backdrop-filter: blur(12px); text-align: center; font-family: var(--font-outfit);">
         <p style="font-size: 1rem; color: #ffffff; margin-bottom: 0.5rem; font-weight: 600;">
-            Dibuat dengan 💜 bertemakan <span style="color: var(--sakura-pink);">Keqing (Genshin Impact)</span> untuk <span style="color: var(--gold-primary);">Yuhengs</span>
+            Dibuatkan dengan ❤️ oleh <span style="color: var(--purple-light);">Doni Arman</span> untuk <span style="color: var(--gold-primary);">Yuhengs</span>
         </p>
         <p style="font-size: 0.85rem; color: var(--text-muted);">
-            &copy; {{ date('Y') }} <a href="https://github.com/DoniArmanS" target="_blank" style="color: var(--purple-light); text-decoration: none; font-weight: 600;">DoniArmanS</a>. All Rights Reserved. Data disediakan oleh AniList API.
+            &copy; {{ date('Y') }} <a href="https://github.com/DoniArmanS" target="_blank" style="color: var(--purple-light); text-decoration: none; font-weight: 600;">Doni Arman</a>. All Rights Reserved. Data disediakan oleh AniList API.
         </p>
     </footer>
 

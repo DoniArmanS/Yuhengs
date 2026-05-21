@@ -5,16 +5,16 @@
 @section('content')
 
     @if(!$search)
-        <!-- Keqing themed premium hero banner -->
+        <!-- Premium hero banner -->
         <section class="hero-section">
             <div class="hero-content">
-                <p class="hero-subtitle">Yuheng of the Liyue Qixing</p>
+                <p class="hero-subtitle">Premium Anime Streaming</p>
                 <h1 class="hero-title">Selamat Datang di Yuhengs</h1>
                 <p class="hero-desc">
-                    Tonton anime terpopuler sepanjang masa dengan kualitas super jernih, loading super cepat, dan multi-server mirror bebas lag. Rasakan pengalaman streaming termulus bertemakan Keqing dari Genshin Impact!
+                    Tonton anime terpopuler sepanjang masa dengan kualitas super jernih, loading super cepat, dan multi-server mirror bebas lag. Rasakan pengalaman streaming terbaik dengan berbagai server premium pilihan!
                 </p>
                 <div class="hero-badge-container">
-                    <span class="hero-badge highlight"><i class="fas fa-bolt"></i> Electro Speed Servers</span>
+                    <span class="hero-badge highlight"><i class="fas fa-bolt"></i> High Speed Servers</span>
                     <span class="hero-badge"><i class="fas fa-shield-alt"></i> Secure & Safe</span>
                     <span class="hero-badge"><i class="fas fa-heart"></i> Ad-Free Player</span>
                 </div>
@@ -32,7 +32,7 @@
                     <div class="anime-card" onclick="window.location='{{ route('anime.watch', ['id' => $anime['id']]) }}'">
                         <div class="anime-cover-wrapper">
                             <span class="anime-rating">
-                                <i class="fas fa-star"></i> {{ number_format($anime['averageScore'] / 10, 1) }}
+                                <i class="fas fa-star"></i> {{ $anime['averageScore'] ? number_format($anime['averageScore'] / 10, 1) : 'N/A' }}
                             </span>
                             <img class="anime-cover" src="{{ $anime['coverImage']['extraLarge'] ?? $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}">
                         </div>
@@ -61,7 +61,7 @@
                     <div class="anime-card" onclick="window.location='{{ route('anime.watch', ['id' => $anime['id']]) }}'">
                         <div class="anime-cover-wrapper">
                             <span class="anime-rating">
-                                <i class="fas fa-star"></i> {{ number_format($anime['averageScore'] / 10, 1) }}
+                                <i class="fas fa-star"></i> {{ $anime['averageScore'] ? number_format($anime['averageScore'] / 10, 1) : 'N/A' }}
                             </span>
                             <img class="anime-cover" src="{{ $anime['coverImage']['extraLarge'] ?? $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}">
                         </div>
@@ -75,6 +75,35 @@
                     </div>
                 @empty
                     <p style="color: var(--text-muted);">Tidak ada anime populer saat ini.</p>
+                @endforelse
+            </div>
+        </section>
+
+        <!-- Latest Anime List -->
+        <section>
+            <h2 class="section-title">
+                <i class="fas fa-calendar-alt" style="color: var(--purple-light); text-shadow: 0 0 10px rgba(192, 132, 252, 0.4);"></i> 
+                Anime Rilis <span class="accent">Terbaru</span>
+            </h2>
+            <div class="anime-grid">
+                @forelse($latestList as $anime)
+                    <div class="anime-card" onclick="window.location='{{ route('anime.watch', ['id' => $anime['id']]) }}'">
+                        <div class="anime-cover-wrapper">
+                            <span class="anime-rating">
+                                <i class="fas fa-star"></i> {{ $anime['averageScore'] ? number_format($anime['averageScore'] / 10, 1) : 'N/A' }}
+                            </span>
+                            <img class="anime-cover" src="{{ $anime['coverImage']['extraLarge'] ?? $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}">
+                        </div>
+                        <div class="anime-card-content">
+                            <h3 class="anime-title">{{ $anime['title']['english'] ?? $anime['title']['romaji'] }}</h3>
+                            <div class="anime-meta">
+                                <span>{{ $anime['seasonYear'] ?? 'N/A' }}</span>
+                                <span class="anime-episodes-badge">{{ $anime['episodes'] ?? '?' }} Ep</span>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p style="color: var(--text-muted);">Tidak ada anime terbaru saat ini.</p>
                 @endforelse
             </div>
         </section>
@@ -92,7 +121,7 @@
                         <div class="anime-card" onclick="window.location='{{ route('anime.watch', ['id' => $anime['id']]) }}'">
                             <div class="anime-cover-wrapper">
                                 <span class="anime-rating">
-                                    <i class="fas fa-star"></i> {{ number_format($anime['averageScore'] / 10, 1) }}
+                                    <i class="fas fa-star"></i> {{ $anime['averageScore'] ? number_format($anime['averageScore'] / 10, 1) : 'N/A' }}
                                 </span>
                                 <img class="anime-cover" src="{{ $anime['coverImage']['extraLarge'] ?? $anime['coverImage']['large'] }}" alt="{{ $anime['title']['romaji'] }}">
                             </div>
