@@ -78,8 +78,7 @@ Yuhengs/
 │   ├── js/
 │   │   └── anime-player.js       # Logika ganti server & Falling Sakura Canvas
 │   └── images/
-│       ├── keqing-favicon.png    # Favicon wajah Keqing chibi
-│       └── keqing-banner.png     # Banner latar belakang Keqing premium
+│       └── keqing-favicon.png    # Favicon wajah Keqing chibi
 ├── resources/
 │   └── views/
 │       ├── layouts/
