@@ -3,26 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="description" content="Yuhengs - Platform Streaming Anime Premium Keqing-Themed dengan multi-server resolusi tinggi.">
     <title>@yield('title', 'Yuhengs - Premium Anime Streaming Platform')</title>
+    
     <!-- Favicon Chibi Keqing -->
     <link rel="icon" type="image/png" href="/images/keqing-favicon.png">
     
     <!-- Theme CSS Styling -->
     <link rel="stylesheet" href="/css/keqing-theme.css">
     
-    <!-- Glightbox or other tools if needed, but we keep it light and clean -->
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
 
     <!-- Navigation Bar -->
-    <nav class="navbar">
-        <a href="{{ route('anime.index') }}" class="nav-brand">
-            <img class="brand-img" src="/images/keqing-favicon.png" alt="Keqing Chibi">
+    <nav class="navbar" aria-label="Main Navigation">
+        <a href="{{ route('anime.index') }}" class="nav-brand" aria-label="Yuhengs Home">
+            <img class="brand-img" src="/images/keqing-favicon.png" alt="Keqing Chibi Logo">
             <span class="brand-text">Yuhengs</span>
         </a>
         
-        <form action="{{ route('anime.index') }}" method="GET" class="nav-search-form">
+        <form action="{{ route('anime.index') }}" method="GET" class="nav-search-form" role="search">
             <input 
                 type="text" 
                 name="q" 
@@ -30,30 +33,35 @@
                 placeholder="Cari anime favoritmu..." 
                 value="{{ request('q') }}"
                 autocomplete="off"
+                aria-label="Search anime"
             >
-            <button type="submit" class="nav-search-btn">
-                <i class="fas fa-search"></i>
+            <button type="submit" class="nav-search-btn" aria-label="Search Button">
+                <i class="fas fa-search" aria-hidden="true"></i>
             </button>
         </form>
         
-        <div style="display: flex; gap: 1.5rem; align-items: center; font-family: var(--font-outfit); font-weight: 600;">
-            <a href="{{ route('anime.index') }}" style="color: var(--gold-primary); text-decoration: none; text-shadow: 0 0 5px var(--gold-glow);"><i class="fas fa-home"></i> Beranda</a>
-            <a href="https://github.com/DoniArmanS/Yuhengs" target="_blank" style="color: var(--text-main); text-decoration: none; transition: var(--transition-smooth);" onmouseover="this.style.color='var(--purple-light)'" onmouseout="this.style.color='var(--text-main)'"><i class="fab fa-github"></i> GitHub</a>
+        <div class="nav-links">
+            <a href="{{ route('anime.index') }}" class="nav-link {{ request()->is('/') ? 'active' : '' }}">
+                <i class="fas fa-home" aria-hidden="true"></i> Beranda
+            </a>
+            <a href="https://github.com/DoniArmanS/Yuhengs" target="_blank" rel="noopener noreferrer" class="nav-link">
+                <i class="fab fa-github" aria-hidden="true"></i> GitHub
+            </a>
         </div>
     </nav>
 
     <!-- Main Content Area -->
-    <main class="container">
+    <main class="container" id="main-content">
         @yield('content')
     </main>
 
     <!-- Footer -->
-    <footer style="margin-top: 5rem; padding: 2.5rem 0; border-top: 1px solid var(--glass-border); background: rgba(8, 5, 22, 0.8); backdrop-filter: blur(12px); text-align: center; font-family: var(--font-outfit);">
-        <p style="font-size: 1rem; color: #ffffff; margin-bottom: 0.5rem; font-weight: 600;">
-            Dibuatkan dengan ❤️ oleh <span style="color: var(--purple-light);">Doni Arman</span> untuk <span style="color: var(--gold-primary);">Yuhengs</span>
+    <footer class="site-footer">
+        <p class="footer-text">
+            Dibuatkan dengan ❤️ oleh <span class="highlight-purple">Doni Arman</span> untuk <span class="highlight-gold">Yuhengs</span>
         </p>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">
-            &copy; {{ date('Y') }} <a href="https://github.com/DoniArmanS" target="_blank" style="color: var(--purple-light); text-decoration: none; font-weight: 600;">Doni Arman</a>. All Rights Reserved. Data disediakan oleh AniList API.
+        <p class="footer-subtext">
+            &copy; {{ date('Y') }} <a href="https://github.com/DoniArmanS" target="_blank" rel="noopener noreferrer">Doni Arman</a>. All Rights Reserved. Data disediakan oleh AniList API.
         </p>
     </footer>
 

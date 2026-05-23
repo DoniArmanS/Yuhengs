@@ -3,8 +3,8 @@
 use App\Http\Controllers\AnimeController;
 use Illuminate\Support\Facades\Route;
 
-// Dashboard and Search
+// Homepage / Search
 Route::get('/', [AnimeController::class, 'index'])->name('anime.index');
 
-// Player Page
+// Watch page
 Route::get('/watch/{id}/{episode?}', [AnimeController::class, 'watch'])->name('anime.watch');
