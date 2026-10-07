@@ -1,26 +1,99 @@
 @import "tailwindcss";
 
+@theme {
+  /* Late-night broadcast: a monitor-navy studio, a red on-air tally, amber guide times. */
+  --color-ink: #0f1626;
+  --color-ink-deep: #0a101d;
+  --color-panel: #161f33;
+  --color-panel-raised: #1d2840;
+  --color-rule: #24304a;
+  --color-rule-strong: #3a4866;
+  --color-onair: #ff4438;
+  --color-onair-hover: #ff6a5f;
+  --color-guide: #ffb547;
+  --color-paper: #eef2f8;
+  --color-dim: #8d9ab3;
+  --color-faint: #64718b;
+
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-ink);
+  scrollbar-color: var(--color-rule-strong) transparent;
+  /* Keep focused elements clear of the sticky header. */
+  scroll-padding-top: 5rem;
+  -webkit-tap-highlight-color: rgb(238 242 248 / 0.12);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink);
+  color: var(--color-paper);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a,
+button,
+input,
+select,
+label {
+  touch-action: manipulation;
+}
+
+::selection {
+  background: var(--color-onair);
+  color: white;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-guide);
+  outline-offset: 3px;
+}
+
+/* Lower-third type: Archivo's width axis pulled in for titles and times. */
+@utility condensed {
+  font-stretch: 72%;
+  letter-spacing: -0.01em;
+  word-spacing: 0.08em;
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* The on-air tally blinks a few times when the page opens, then holds. */
+@keyframes tally {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+
+.tally {
+  animation: tally 1.2s ease-in-out 3;
+  box-shadow:
+    0 0 0 3px rgb(255 68 56 / 0.18),
+    0 0 12px rgb(255 68 56 / 0.6);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tally {
+    animation: none;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
 }

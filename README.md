@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yuhengs
 
-## Getting Started
+A free, non-commercial anime streaming fan site styled like a late-night TV channel: what just aired, what's on next, and everything else on AniList.
 
-First, run the development server:
+Built with Next.js 16 (App Router, Cache Components), React 19, TypeScript and Tailwind CSS 4. Anime data comes from the [AniList GraphQL API](https://docs.anilist.co); video plays from third-party embed servers. Nothing is hosted here.
+
+## Run it
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev        # http://localhost:3000
+npm run dev:lan    # HTTPS on your local network, for testing on a phone
+npm run build && npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Optional: set `NEXT_PUBLIC_SITE_URL` to your deployed URL so social previews resolve correctly.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Pages
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Route | What it does |
+| --- | --- |
+| `/` | On air (the biggest new episode of the last day), just-aired list, a 24-hour "Coming up" guide, continue watching, seasonal / trending / popular / top-rated rows |
+| `/search` | Title search with genre, season, year, format, status and sort filters (all in the URL) |
+| `/anime/[id]` | Details, episode list, related titles and recommendations |
+| `/watch/[id]/[episode]` | Player with server and sub/dub switching, episode list, prev/next |
+| `/schedule` | This week's airing episodes in the viewer's local time |
 
-## Learn More
+Watch history and player preferences live in `localStorage`; there are no accounts yet.
 
-To learn more about Next.js, take a look at the following resources:
+## Streaming servers
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Defined in [`src/lib/providers.ts`](src/lib/providers.ts), all keyed by AniList id, in fallback order: AniEmbed (default, runs in a sandboxed iframe so it can't open pop-ups), MegaPlay, VidNest. MegaPlay needs a secure page (HTTPS or localhost), which is why `dev:lan` serves HTTPS. Third-party embeds break without notice; re-test them and update that file when one stops working.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Design
 
-## Deploy on Vercel
+Late-night broadcast: monitor-navy surfaces, a red on-air tally reserved for live and primary actions, amber for air times and scores, and one typeface (Archivo, self-hosted) whose width axis gives condensed titles and normal-width body text. Tokens live in [`src/app/globals.css`](src/app/globals.css).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Credits
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Anime data and artwork from AniList. Yuhengs is not affiliated with AniList or any streaming provider.
