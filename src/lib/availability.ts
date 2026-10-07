@@ -14,6 +14,11 @@ import { slotKey } from "./format";
  *    exists, `error:"API responded with 404"` when it doesn't.
  *  - MegaPlay titles the page "File <n> - MegaPlay" vs "Error - MegaPlay".
  * A server that times out or is blocked reports `null` (unknown).
+ *
+ * Providers may also answer "not found" to requests from hosting data
+ * centres (Vercel's default region is in the US) while working fine for
+ * viewers. Canary checks below detect that and switch the provider's answers
+ * to "unknown", so the site falls back to showing every aired episode.
  */
 
 export interface EpisodeCheck {
@@ -49,11 +54,44 @@ async function probeMegaPlay(id: number, ep: number): Promise<boolean | null> {
   return null;
 }
 
+/**
+ * Episodes every provider certainly has. If a provider says "no" to these,
+ * it's refusing *us* (e.g. blocking our hosting region), not missing the show,
+ * so its answers can't be trusted from this server.
+ */
+const CANARIES = [
+  { id: 154587, ep: 1 }, // Frieren
+  { id: 21, ep: 1 }, // One Piece
+];
+
+type Provider = "aniembed" | "megaplay";
+const PROBES: Record<Provider, (id: number, ep: number) => Promise<boolean | null>> = {
+  aniembed: probeAniEmbed,
+  megaplay: probeMegaPlay,
+};
+
+/** Whether a provider gives this server truthful answers, judged by the canary episodes. */
+async function providerAnswers(provider: Provider): Promise<boolean> {
+  "use cache";
+
+  const results = await Promise.all(CANARIES.map((c) => PROBES[provider](c.id, c.ep)));
+  const ok = results.some((r) => r === true);
+  // Re-test a blocked provider every few minutes; a healthy one hourly.
+  if (ok) cacheLife("hours");
+  else cacheLife({ stale: 300, revalidate: 300, expire: 3600 });
+  return ok;
+}
+
 /** Which servers have this episode. Ready answers are kept for days, misses only for minutes. */
 export async function checkEpisode(id: number, ep: number): Promise<EpisodeCheck> {
   "use cache";
 
-  const [aniembed, megaplay] = await Promise.all([probeAniEmbed(id, ep), probeMegaPlay(id, ep)]);
+  // A provider that fails its canary reports "unknown" rather than a false "no".
+  const [aeTrusted, mpTrusted] = await Promise.all([providerAnswers("aniembed"), providerAnswers("megaplay")]);
+  const [aniembed, megaplay] = await Promise.all([
+    aeTrusted ? probeAniEmbed(id, ep) : null,
+    mpTrusted ? probeMegaPlay(id, ep) : null,
+  ]);
   const result = { aniembed, megaplay };
 
   if (isReady(result)) {
@@ -122,4 +160,32 @@ export async function readySlotKeys(slots: AiringSlot[], now: number, limit = 24
   };
   await Promise.all(Array.from({ length: 6 }, worker));
   return keys;
+}
+
+/** Raw provider responses for one episode, for troubleshooting a deployment (uncached). */
+export async function diagnose(id: number, ep: number) {
+  const one = async (url: string) => {
+    try {
+      const res = await fetch(url, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(4000) });
+      const html = await res.text();
+      return {
+        status: res.status,
+        title: html.match(/<title>([^<]*)<\/title>/)?.[1] ?? null,
+        error: html.match(/error:("[^"]*"|null)/)?.[1] ?? null,
+        bytes: html.length,
+      };
+    } catch (e) {
+      return { failed: String(e) };
+    }
+  };
+  const [aniembed, megaplay] = await Promise.all([
+    one(`https://aniembed.se/e/${id}/${ep}?lang=sub`),
+    one(`https://megaplay.buzz/stream/ani/${id}/${ep}/sub`),
+  ]);
+  return {
+    region: process.env.VERCEL_REGION ?? "local",
+    aniembed,
+    megaplay,
+    trusted: { aniembed: await providerAnswers("aniembed"), megaplay: await providerAnswers("megaplay") },
+  };
 }
