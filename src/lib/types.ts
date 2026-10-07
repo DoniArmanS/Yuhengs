@@ -26,6 +26,7 @@ export interface AnimeCard {
   episodes: number | null;
   averageScore: number | null;
   seasonYear: number | null;
+  genres: string[];
   nextAiringEpisode: { episode: number; airingAt: number } | null;
 }
 

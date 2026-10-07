@@ -21,8 +21,12 @@ const CARD_FIELDS = `
   episodes
   averageScore
   seasonYear
+  genres
   nextAiringEpisode { episode airingAt }
 `;
+
+/** Genres offered as "channels" on the home page, each shown with its most popular covers. */
+export const CHANNEL_GENRES = ["Action", "Romance", "Comedy", "Fantasy", "Slice of Life", "Mystery", "Sci-Fi", "Sports"];
 
 async function query<T>(document: string, variables: Record<string, unknown> = {}): Promise<T> {
   const res = await fetch(ENDPOINT, {
@@ -55,6 +59,13 @@ export function currentSeason(date = new Date()): { season: MediaSeason; year: n
   return { season, year };
 }
 
+/** Latest year worth offering in filters (next year's announcements included). */
+export async function getMaxFilterYear(): Promise<number> {
+  "use cache";
+  cacheLife("days");
+  return new Date().getUTCFullYear() + 1;
+}
+
 export async function getHomeCollections() {
   "use cache";
   cacheLife("hours");
@@ -66,7 +77,7 @@ export async function getHomeCollections() {
     seasonal: { media: AnimeCard[] };
     popular: { media: AnimeCard[] };
     topRated: { media: AnimeCard[] };
-  }>(
+  } & Record<string, { media: { id: number; coverImage: { large: string | null; color: string | null } }[] }>>(
     `query ($season: MediaSeason, $year: Int) {
       trending: Page(page: 1, perPage: 18) {
         media(type: ANIME, sort: TRENDING_DESC, isAdult: false) { ${CARD_FIELDS} }
@@ -80,6 +91,11 @@ export async function getHomeCollections() {
       topRated: Page(page: 1, perPage: 18) {
         media(type: ANIME, sort: SCORE_DESC, isAdult: false) { ${CARD_FIELDS} }
       }
+      ${CHANNEL_GENRES.map(
+        (g, i) => `g${i}: Page(page: 1, perPage: 10) {
+          media(type: ANIME, genre: "${g}", sort: POPULARITY_DESC, isAdult: false) { id coverImage { large color } }
+        }`,
+      ).join("\n")}
     }`,
     { season, year },
   );
@@ -89,9 +105,38 @@ export async function getHomeCollections() {
     seasonal: data.seasonal.media,
     popular: data.popular.media,
     topRated: data.topRated.media,
+    channels: pickChannelCovers(CHANNEL_GENRES.map((_, i) => data[`g${i}`].media)).map((covers, i) => ({
+      genre: CHANNEL_GENRES[i],
+      covers,
+    })),
     season,
     year,
   };
+}
+
+/** Three covers per genre, skipping shows an earlier genre already used, so tiles don't repeat. */
+function pickChannelCovers(lists: { id: number; coverImage: { large: string | null; color: string | null } }[][]) {
+  const used = new Set<number>();
+  return lists.map((list) => {
+    const fresh = list.filter((m) => !used.has(m.id)).slice(0, 3);
+    fresh.forEach((m) => used.add(m.id));
+    return fresh.map((m) => ({ url: m.coverImage.large, color: m.coverImage.color }));
+  });
+}
+
+/** Synopses and banners for a handful of shows (the home spotlight). */
+export async function getBlurbs(ids: number[]): Promise<Record<number, { description: string | null; bannerImage: string | null }>> {
+  "use cache";
+  cacheLife("hours");
+
+  if (ids.length === 0) return {};
+  const data = await query<{ Page: { media: { id: number; description: string | null; bannerImage: string | null }[] } }>(
+    `query ($ids: [Int]) {
+      Page(perPage: 10) { media(id_in: $ids, type: ANIME) { id description(asHtml: false) bannerImage } }
+    }`,
+    { ids },
+  );
+  return Object.fromEntries(data.Page.media.map((m) => [m.id, { description: m.description, bannerImage: m.bannerImage }]));
 }
 
 export async function getAnime(id: number): Promise<AnimeDetail | null> {
@@ -210,11 +255,12 @@ export async function getBroadcast(): Promise<{ slots: AiringSlot[]; fetchedAt: 
   return { slots, fetchedAt: now };
 }
 
-export async function getWeekSchedule(): Promise<AiringSlot[]> {
+export async function getWeekSchedule(): Promise<{ slots: AiringSlot[]; fetchedAt: number }> {
   "use cache";
   cacheLife("hours");
 
   // Start a day early so every viewer timezone sees a complete "today".
   const now = Math.floor(Date.now() / 1000);
-  return getAiringBetween(now - 86_400, now + 7 * 86_400);
+  const slots = await getAiringBetween(now - 86_400, now + 7 * 86_400);
+  return { slots, fetchedAt: now };
 }

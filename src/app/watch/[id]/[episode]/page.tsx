@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 import { getAnime } from "@/lib/anilist";
 import { availableEpisodes, displayTitle, formatLabel, plainDescription } from "@/lib/format";
 import { Player } from "@/components/player";
 import { EpisodePicker } from "@/components/episode-picker";
 import { EmptyState } from "@/components/empty-state";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
+import { LiveCheck } from "@/components/live-check";
+import { checkEpisode, latestReadyEpisode } from "@/lib/availability";
 
 export async function generateMetadata(props: PageProps<"/watch/[id]/[episode]">): Promise<Metadata> {
   const { id, episode } = await props.params;
@@ -18,8 +20,16 @@ export async function generateMetadata(props: PageProps<"/watch/[id]/[episode]">
 
 export default function WatchPage(props: PageProps<"/watch/[id]/[episode]">) {
   return (
-    <Suspense fallback={<WatchSkeleton />}>
-      <Watch params={props.params} />
+    <Suspense
+      fallback={
+        <ViewTransition exit="slide-down" default="none">
+          <WatchSkeleton />
+        </ViewTransition>
+      }
+    >
+      <ViewTransition enter="slide-up" default="none">
+        <Watch params={props.params} />
+      </ViewTransition>
     </Suspense>
   );
 }
@@ -34,9 +44,9 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
   if (!anime) notFound();
 
   const title = displayTitle(anime);
-  const available = availableEpisodes(anime);
+  const aired = availableEpisodes(anime);
 
-  if (available === 0) {
+  if (aired === 0) {
     return (
       <EmptyState title={`${title} hasn’t aired yet`}>
         <p>
@@ -50,8 +60,15 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
   }
 
   // Keep URLs honest: out-of-range episodes go to the nearest real one.
-  const episode = Math.min(Math.max(requested, 1), available);
+  const episode = Math.min(Math.max(requested, 1), aired);
   if (episode !== requested) redirect(`/watch/${anime.id}/${episode}`);
+
+  // Aired isn't the same as playable: ask the servers what they actually have.
+  const [ready, check] = await Promise.all([latestReadyEpisode(anime.id, aired), checkEpisode(anime.id, episode)]);
+  const uploading = episode > ready;
+  const missingOn = [check.aniembed === false && "aniembed", check.megaplay === false && "megaplay"].filter(
+    (s): s is string => Boolean(s),
+  );
 
   const description = plainDescription(anime.description).split(/\n+/)[0];
 
@@ -70,15 +87,44 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
       </nav>
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
-        <div className="min-w-0">
-          <Player
-            anilistId={anime.id}
-            episode={episode}
-            totalEpisodes={anime.episodes}
-            title={title}
-            cover={anime.coverImage.large}
-            color={anime.coverImage.color}
-          />
+        <div className="relative isolate min-w-0" style={{ ["--ambient" as string]: anime.coverImage.color ?? "#ff4438" }}>
+          {/* Ambilight: the show's colour glows around the player. */}
+          <div className="ambient-glow pointer-events-none absolute -inset-x-16 -top-16 -z-10 h-[min(75vw,620px)] opacity-100 blur-3xl saturate-150" aria-hidden />
+          {uploading ? (
+            <div className="flex aspect-video flex-col items-center justify-center gap-4 rounded-[3px] border border-rule-strong bg-ink-deep p-6 text-center">
+              <p className="condensed text-3xl font-extrabold">
+                {ready > 0 ? `Episode ${episode} is still uploading` : `Episode ${episode} isn’t on our servers yet`}
+              </p>
+              <p className="max-w-md text-sm text-dim">
+                {ready > 0
+                  ? "It has aired, but our servers don’t have it yet. New episodes usually arrive within an hour."
+                  : "It has aired, but no streaming server carries this show yet. Some shows are picked up later, and some never are."}
+              </p>
+              {ready > 0 ? (
+                <Link
+                  href={`/watch/${anime.id}/${ready}`}
+                  className="inline-flex h-11 items-center rounded-[3px] border border-rule-strong px-4 text-sm font-semibold transition-colors hover:border-paper/60"
+                >
+                  Watch episode {ready} instead
+                </Link>
+              ) : null}
+            </div>
+          ) : (
+            <Player
+              anilistId={anime.id}
+              episode={episode}
+              totalEpisodes={anime.episodes}
+              title={title}
+              cover={anime.coverImage.large}
+              color={anime.coverImage.color}
+              missingOn={missingOn}
+            />
+          )}
+          {ready < aired ? (
+            <div className="mt-4">
+              <LiveCheck animeId={anime.id} aired={aired} ready={ready} />
+            </div>
+          ) : null}
 
           <div className="mt-6 flex items-center justify-between gap-3">
             {episode > 1 ? (
@@ -92,10 +138,10 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
             ) : (
               <span />
             )}
-            {episode < available ? (
+            {episode < ready ? (
               <Link
                 href={`/watch/${anime.id}/${episode + 1}`}
-                className="rounded-[3px] transition-colors inline-flex h-11 items-center gap-1.5 pr-2.5 pl-4 text-sm font-semibold text-white bg-onair hover:bg-onair-hover"
+                className="rounded-[3px] transition-[background-color,transform] duration-150 active:scale-[0.97] inline-flex h-11 items-center gap-1.5 pr-2.5 pl-4 text-sm font-semibold text-white bg-onair hover:bg-onair-hover"
               >
                 Next: episode {episode + 1}
                 <ChevronRightIcon className="size-4" />
@@ -106,7 +152,7 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
           <div className="mt-10 border-t border-rule/60 pt-6">
             <h1 className="condensed text-4xl leading-none font-extrabold text-balance">{title}</h1>
             <p className="mt-2 flex flex-wrap gap-x-4 text-sm text-dim">
-              <span>Episode {episode} of {anime.episodes ?? available}</span>
+              <span>Episode {episode} of {anime.episodes ?? aired}</span>
               {formatLabel(anime.format) ? <span>{formatLabel(anime.format)}</span> : null}
               {anime.genres.length ? <span>{anime.genres.slice(0, 3).join(", ")}</span> : null}
             </p>
@@ -125,7 +171,11 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
               Episodes
             </h2>
             <div className="max-h-[60vh] overflow-y-auto pr-1">
-              <EpisodePicker animeId={anime.id} total={available} current={episode} />
+              {ready > 0 ? (
+                <EpisodePicker animeId={anime.id} total={ready} current={episode} />
+              ) : (
+                <p className="text-sm text-dim">No episodes are on our servers yet.</p>
+              )}
             </div>
           </div>
         </aside>

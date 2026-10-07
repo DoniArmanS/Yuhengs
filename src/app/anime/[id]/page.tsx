@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, ViewTransition } from "react";
 import { getAnime } from "@/lib/anilist";
 import {
   availableEpisodes,
   displayTitle,
   formatLabel,
   plainDescription,
+  firstAppearances,
   seasonLabel,
   statusLabel,
 } from "@/lib/format";
@@ -17,6 +18,8 @@ import { AnimeRow } from "@/components/anime-row";
 import { EpisodePicker } from "@/components/episode-picker";
 import { WatchCta } from "@/components/watch-cta";
 import { LocalTime } from "@/components/local-time";
+import { LiveCheck } from "@/components/live-check";
+import { latestReadyEpisode } from "@/lib/availability";
 import { StarIcon } from "@/components/icons";
 
 export async function generateMetadata(props: PageProps<"/anime/[id]">): Promise<Metadata> {
@@ -33,8 +36,16 @@ export async function generateMetadata(props: PageProps<"/anime/[id]">): Promise
 
 export default function AnimePage(props: PageProps<"/anime/[id]">) {
   return (
-    <Suspense fallback={<DetailSkeleton />}>
-      <AnimeDetail params={props.params} />
+    <Suspense
+      fallback={
+        <ViewTransition exit="slide-down" default="none">
+          <DetailSkeleton />
+        </ViewTransition>
+      }
+    >
+      <ViewTransition enter="slide-up" default="none">
+        <AnimeDetail params={props.params} />
+      </ViewTransition>
     </Suspense>
   );
 }
@@ -48,7 +59,7 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
   if (!anime) notFound();
 
   const title = displayTitle(anime);
-  const available = availableEpisodes(anime);
+  const aired = availableEpisodes(anime);
   const description = plainDescription(anime.description);
   const studio = anime.studios.nodes[0]?.name;
   const related = anime.relations.edges
@@ -57,6 +68,8 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
   const recommended = anime.recommendations.nodes
     .map((n) => n.mediaRecommendation)
     .filter((m): m is AnimeCard => m !== null);
+  // The cover already carries this anime's morph name, so exclude it from the rows.
+  const [relatedMorph, recommendedMorph] = firstAppearances([related, recommended], [anime.id]);
 
   const facts = [
     { label: "Format", value: formatLabel(anime.format) },
@@ -68,7 +81,9 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
   ].filter((f): f is { label: string; value: string } => Boolean(f.value));
 
   return (
-    <article>
+    <article className="relative isolate" style={{ ["--ambient" as string]: anime.coverImage.color ?? "#ff4438" }}>
+      {/* The show's own colour washes the top of the page. */}
+      <div className="ambient-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[760px] opacity-90" aria-hidden />
       <div className="relative h-[220px] overflow-hidden sm:h-[300px] lg:h-[340px]">
         {anime.bannerImage ? (
           <Image src={anime.bannerImage} alt="" fill priority sizes="100vw" className="object-cover" />
@@ -78,12 +93,14 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
             style={{ backgroundColor: anime.coverImage.color ?? "var(--color-panel)" }}
           />
         )}
+        <div className="scanlines absolute inset-0 opacity-50" aria-hidden />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/60 to-ink/10" />
       </div>
 
       <div className="relative mx-auto -mt-28 grid max-w-[1400px] gap-8 px-4 sm:-mt-36 sm:px-6 md:grid-cols-[220px_minmax(0,1fr)] lg:grid-cols-[260px_minmax(0,1fr)] lg:gap-12 lg:px-10">
+        <ViewTransition name={`cover-${anime.id}`} share="morph" default="none">
         <div
-          className="relative aspect-[2/3] w-40 overflow-hidden rounded-[3px] border border-rule-strong shadow-2xl shadow-black/50 sm:w-48 md:w-full"
+          className="relative aspect-[2/3] w-40 overflow-hidden rounded-[4px] border border-paper/20 shadow-[0_30px_70px_-18px_var(--ambient)] sm:w-48 md:w-full"
           style={{ backgroundColor: anime.coverImage.color ?? "var(--color-panel)" }}
         >
           {anime.coverImage.extraLarge ? (
@@ -97,6 +114,7 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
             />
           ) : null}
         </div>
+        </ViewTransition>
 
         <div className="min-w-0 md:pt-24 lg:pt-32">
           <h1 className="condensed text-[clamp(2.5rem,5.5vw,4rem)] leading-[0.95] font-extrabold text-balance">
@@ -127,8 +145,10 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
           </div>
 
           <div className="mt-7 flex flex-wrap items-center gap-4">
-            {available > 0 ? (
-              <WatchCta animeId={anime.id} available={available} />
+            {aired > 0 ? (
+              <Suspense fallback={<CtaChecking />}>
+                <ReadyCta animeId={anime.id} aired={aired} />
+              </Suspense>
             ) : (
               <p className="rounded-[3px] border border-rule bg-panel px-4 py-3 text-sm text-dim">
                 {anime.nextAiringEpisode ? (
@@ -175,21 +195,74 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
         </div>
       </div>
 
-      {available > 0 ? (
+      {aired > 0 ? (
         <section className="mx-auto mt-14 max-w-[1400px] px-4 sm:px-6 lg:px-10" aria-labelledby="episodes">
-          <h2 id="episodes" className="condensed mb-5 text-3xl font-extrabold">
-            Episodes
-            <span className="ml-3 align-middle text-sm font-normal [font-stretch:100%] text-faint">
-              {available} available
-            </span>
-          </h2>
-          <EpisodePicker animeId={anime.id} total={available} />
+          <Suspense fallback={<EpisodesChecking aired={aired} />}>
+            <ReadyEpisodes animeId={anime.id} aired={aired} />
+          </Suspense>
         </section>
       ) : null}
 
-      <AnimeRow title="Related" items={related} />
-      <AnimeRow title="If you liked this" items={recommended} />
+      <AnimeRow title="Related" items={related} morphIds={relatedMorph} />
+      <AnimeRow title="If you liked this" items={recommended} morphIds={recommendedMorph} />
     </article>
+  );
+}
+
+/** Watch button for the newest episode the servers actually have. */
+async function ReadyCta({ animeId, aired }: { animeId: number; aired: number }) {
+  const ready = await latestReadyEpisode(animeId, aired);
+  if (ready === 0) {
+    return <p className="rounded-[3px] border border-rule bg-panel px-4 py-3 text-sm text-dim">Not on our servers yet</p>;
+  }
+  return <WatchCta animeId={animeId} available={ready} />;
+}
+
+function CtaChecking() {
+  return (
+    <span className="inline-flex h-12 items-center gap-2.5 rounded-[3px] border border-rule bg-panel px-5 text-sm text-dim" role="status">
+      <span className="tuning size-2 rounded-full bg-onair" aria-hidden />
+      Checking servers…
+    </span>
+  );
+}
+
+async function ReadyEpisodes({ animeId, aired }: { animeId: number; aired: number }) {
+  const ready = await latestReadyEpisode(animeId, aired);
+  return (
+    <>
+      <h2 id="episodes" className="condensed mb-5 text-3xl font-extrabold">
+        Episodes
+        <span className="ml-3 align-middle text-sm font-normal [font-stretch:100%] [word-spacing:normal] text-faint">
+          {ready} ready to watch
+        </span>
+      </h2>
+      {ready < aired ? (
+        <div className="mb-5">
+          <LiveCheck animeId={animeId} aired={aired} ready={ready} />
+        </div>
+      ) : null}
+      {ready > 0 ? <EpisodePicker animeId={animeId} total={ready} /> : null}
+    </>
+  );
+}
+
+function EpisodesChecking({ aired }: { aired: number }) {
+  return (
+    <div aria-busy="true">
+      <h2 id="episodes" className="condensed mb-5 text-3xl font-extrabold">
+        Episodes
+      </h2>
+      <p className="mb-4 flex items-center gap-2.5 text-sm text-dim" role="status">
+        <span className="tuning size-2 rounded-full bg-onair" aria-hidden />
+        Checking which episodes are on our servers…
+      </p>
+      <div className="grid grid-cols-[repeat(auto-fill,minmax(3.25rem,1fr))] gap-2">
+        {Array.from({ length: Math.min(aired, 24) }, (_, i) => (
+          <div key={i} className="h-11 animate-pulse rounded-[2px] bg-panel" />
+        ))}
+      </div>
+    </div>
   );
 }
 

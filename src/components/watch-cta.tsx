@@ -11,7 +11,7 @@ export function WatchCta({ animeId, available }: { animeId: number; available: n
   return (
     <Link
       href={`/watch/${animeId}/${resume ?? 1}`}
-      className="rounded-[3px] transition-colors inline-flex h-12 items-center gap-2.5 px-6 font-semibold text-white bg-onair hover:bg-onair-hover"
+      className="rounded-[3px] transition-[background-color,transform] duration-150 active:scale-[0.97] inline-flex h-12 items-center gap-2.5 px-6 font-semibold text-white bg-onair hover:bg-onair-hover"
     >
       <PlayIcon className="size-4" />
       {resume ? `Continue episode ${resume}` : "Watch episode 1"}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { SANDBOX_POLICY, SERVERS, type Audio } from "@/lib/providers";
 import { recordWatch } from "@/lib/history";
 
@@ -46,6 +46,7 @@ export function Player({
   title,
   cover,
   color,
+  missingOn = [],
 }: {
   anilistId: number;
   episode: number;
@@ -53,13 +54,22 @@ export function Player({
   title: string;
   cover: string | null;
   color: string | null;
+  /** Servers confirmed not to have this episode (sub); they're hidden from the picker. */
+  missingOn?: string[];
 }) {
   const prefs = useSyncExternalStore(subscribe, readPrefs, () => DEFAULT_PREFS);
   // On plain-http LAN addresses, servers that need Web Crypto can't play.
   const secure = useSyncExternalStore(noopSubscribe, () => window.isSecureContext, () => true);
-  const servers = SERVERS.filter((s) => s.audio.includes(prefs.audio) && (secure || !s.secureOnly));
+  const servers = SERVERS.filter(
+    (s) =>
+      s.audio.includes(prefs.audio) &&
+      (secure || !s.secureOnly) &&
+      !(prefs.audio === "sub" && missingOn.includes(s.id)),
+  );
   const active = servers.find((s) => s.id === prefs.server) ?? servers[0];
   const src = active?.url(anilistId, episode, prefs.audio);
+  const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
+  const loading = Boolean(src) && loadedSrc !== src;
 
   useEffect(() => {
     recordWatch({ id: anilistId, title, cover, color, episode, totalEpisodes });
@@ -72,18 +82,27 @@ export function Player({
           <iframe
             key={src}
             src={src}
+            onLoad={() => setLoadedSrc(src)}
             title={`${title}, episode ${episode}`}
-            className="absolute inset-0 size-full"
-            allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
-            allowFullScreen
+            className={`absolute inset-0 size-full transition-opacity duration-500 ${loading ? "opacity-0" : "opacity-100"}`}
+            allow="autoplay; fullscreen; encrypted-media; picture-in-picture; screen-wake-lock"
             referrerPolicy="origin"
             sandbox={active.sandbox ? SANDBOX_POLICY : undefined}
           />
-        ) : (
+        ) : null}
+        {loading ? (
+          <div className="pointer-events-none absolute inset-0 grid place-items-center" role="status">
+            <span className="flex items-center gap-2.5 text-sm font-semibold text-dim">
+              <span className="tuning size-2.5 rounded-full bg-onair" aria-hidden />
+              Tuning in to {active?.name}…
+            </span>
+          </div>
+        ) : null}
+        {!src ? (
           <div className="absolute inset-0 grid place-items-center p-6 text-center text-sm text-dim">
             No server has this episode in {prefs.audio}. Switch the audio to try again.
           </div>
-        )}
+        ) : null}
       </div>
 
       <div className="mt-4 flex flex-col items-start gap-4 rounded-[3px] border border-rule bg-panel p-4 sm:flex-row sm:items-center sm:justify-between">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { removeFromHistory, useHistory } from "@/lib/history";
 import { CloseIcon, PlayIcon } from "./icons";
 import { ScrollRow } from "./scroll-row";
+import { SectionHeading } from "./section-heading";
 
 export function ContinueWatching() {
   const history = useHistory();
@@ -12,7 +13,7 @@ export function ContinueWatching() {
 
   return (
     <section className="mx-auto mt-14 max-w-[1400px] px-4 sm:px-6 lg:px-10">
-      <h2 className="condensed mb-5 text-3xl font-extrabold">Continue watching</h2>
+      <SectionHeading title="Continue watching" />
       <ScrollRow label="Continue watching">
         {history.map((entry) => {
           const progress = entry.totalEpisodes ? Math.min(entry.episode / entry.totalEpisodes, 1) : null;

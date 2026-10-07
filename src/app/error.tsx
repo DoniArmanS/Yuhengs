@@ -15,7 +15,7 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
       <button
         type="button"
         onClick={() => retry()}
-        className="rounded-[3px] transition-colors mt-6 inline-flex h-11 items-center px-5 font-semibold text-white bg-onair"
+        className="rounded-[3px] transition-[background-color,transform] duration-150 active:scale-[0.97] mt-6 inline-flex h-11 items-center px-5 font-semibold text-white bg-onair"
       >
         Try again
       </button>

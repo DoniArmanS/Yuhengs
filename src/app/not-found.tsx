@@ -11,7 +11,7 @@ export default function NotFound() {
       <div className="mt-6 flex justify-center gap-3">
         <Link
           href="/"
-          className="rounded-[3px] transition-colors inline-flex h-11 items-center px-5 font-semibold text-white bg-onair"
+          className="rounded-[3px] transition-[background-color,transform] duration-150 active:scale-[0.97] inline-flex h-11 items-center px-5 font-semibold text-white bg-onair"
         >
           Go home
         </Link>

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Suspense } from "react";
-import { searchAnime } from "@/lib/anilist";
+import { Suspense, ViewTransition } from "react";
+import { getMaxFilterYear, searchAnime } from "@/lib/anilist";
 import { filtersToQuery, parseFilters } from "@/lib/filters";
 import type { SearchFilters } from "@/lib/anilist";
 import { AnimeCard } from "@/components/anime-card";
@@ -18,8 +18,16 @@ export default function SearchPage(props: PageProps<"/search">) {
   return (
     <div className="mx-auto max-w-[1400px] px-4 pt-10 sm:px-6 lg:px-10">
       <h1 className="condensed text-[clamp(2.25rem,5vw,3.5rem)] font-extrabold">Browse anime</h1>
-      <Suspense fallback={<ResultsSkeleton withForm />}>
-        <Results searchParams={props.searchParams} />
+      <Suspense
+        fallback={
+          <ViewTransition exit="slide-down" default="none">
+            <ResultsSkeleton withForm />
+          </ViewTransition>
+        }
+      >
+        <ViewTransition enter="slide-up" default="none">
+          <Results searchParams={props.searchParams} />
+        </ViewTransition>
       </Suspense>
     </div>
   );
@@ -27,12 +35,12 @@ export default function SearchPage(props: PageProps<"/search">) {
 
 async function Results({ searchParams }: Pick<PageProps<"/search">, "searchParams">) {
   const filters = parseFilters(await searchParams);
-  const { media, pageInfo } = await searchAnime(filters);
+  const [{ media, pageInfo }, maxYear] = await Promise.all([searchAnime(filters), getMaxFilterYear()]);
 
   return (
     <>
       <div className="mt-6">
-        <FilterForm filters={filters} maxYear={new Date().getFullYear() + 1} />
+        <FilterForm filters={filters} maxYear={maxYear} />
       </div>
 
       <div className="mt-8 flex items-baseline justify-between gap-4 border-t border-rule/60 pt-6">
@@ -48,19 +56,23 @@ async function Results({ searchParams }: Pick<PageProps<"/search">, "searchParam
         ) : null}
       </div>
 
-      {media.length === 0 ? (
-        <EmptyState title="Nothing matches that search">
-          <p>Check the spelling, try the Japanese title, or remove a filter or two.</p>
-        </EmptyState>
-      ) : (
-        <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-          {media.map((anime, i) => (
-            <li key={anime.id}>
-              <AnimeCard anime={anime} priority={i < 6} sizes="(min-width: 1280px) 200px, (min-width: 768px) 22vw, 45vw" />
-            </li>
-          ))}
-        </ul>
-      )}
+      <ViewTransition key={filtersToQuery(filters)}>
+        <div>
+          {media.length === 0 ? (
+            <EmptyState title="Nothing matches that search">
+              <p>Check the spelling, try the Japanese title, or remove a filter or two.</p>
+            </EmptyState>
+          ) : (
+            <ul className="mt-6 grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              {media.map((anime, i) => (
+                <li key={anime.id}>
+                  <AnimeCard anime={anime} morph priority={i < 6} sizes="(min-width: 1280px) 200px, (min-width: 768px) 22vw, 45vw" />
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </ViewTransition>
 
       {pageInfo.lastPage > 1 ? <Pagination filters={filters} current={pageInfo.currentPage} last={pageInfo.lastPage} /> : null}
     </>

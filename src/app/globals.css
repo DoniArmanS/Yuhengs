@@ -33,7 +33,10 @@ html {
 }
 
 body {
-  background: var(--color-ink);
+  /* Fine film grain baked into the page background so the navy never reads as flat fill.
+     It sits beneath content, so animations never have to re-composite it. */
+  background-color: var(--color-ink);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
   color: var(--color-paper);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
@@ -89,11 +92,189 @@ label {
     0 0 12px rgb(255 68 56 / 0.6);
 }
 
+/* ---------- Texture & atmosphere ---------- */
+
+/* CRT scanlines, used on hero artwork only. */
+@utility scanlines {
+  background-image: repeating-linear-gradient(to bottom, transparent 0 2px, rgb(0 0 0 / 0.22) 2px 3px);
+}
+
+/*
+ * Ambient light: set --ambient to a show's AniList key colour and the
+ * surface glows in it, like a TV's ambilight.
+ */
+@utility ambient-glow {
+  background:
+    radial-gradient(60% 70% at 20% 30%, color-mix(in oklab, var(--ambient, var(--color-onair)) 38%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 85% 80%, color-mix(in oklab, var(--ambient, var(--color-onair)) 22%, transparent), transparent 70%);
+}
+
+/* Chart-show numerals: hollow, condensed, huge. */
+@utility numeral {
+  font-stretch: 62%;
+  font-weight: 900;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 2px rgb(141 154 179 / 0.55);
+  paint-order: stroke fill;
+}
+
+/* News crawl: the track holds the list twice and slides by half its width. */
+@keyframes ticker {
+  to {
+    transform: translateX(-50%);
+  }
+}
+.ticker-track {
+  animation: ticker var(--ticker-duration, 70s) linear infinite;
+  will-change: transform;
+}
+.ticker:hover .ticker-track,
+.ticker:focus-within .ticker-track {
+  animation-play-state: paused;
+}
+
+/* Spotlight art settles in once per slide (a continuous zoom redrew the whole hero every frame). */
+@keyframes settle {
+  from {
+    scale: 1.05;
+  }
+  to {
+    scale: 1;
+  }
+}
+.settle {
+  animation: settle 1.1s var(--ease-out-quart) both;
+}
+
+/* Spotlight slide timer. */
+@keyframes progress {
+  from {
+    scale: 0 1;
+  }
+  to {
+    scale: 1 1;
+  }
+}
+.progress-run {
+  transform-origin: left;
+  animation: progress var(--slide-ms, 7000ms) linear forwards;
+}
+.progress-paused {
+  animation-play-state: paused;
+}
+
+/* ---------- Motion ---------- */
+
+:root {
+  --duration-exit: 150ms;
+  --duration-enter: 240ms;
+  --duration-move: 420ms;
+}
+
+/* Page changes crossfade; the sticky header is identical on both sides so it holds still. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 220ms;
+}
+
+/* Poster to cover art: one object moving, softened mid-flight. */
+::view-transition-group(.morph) {
+  animation-duration: var(--duration-move);
+  animation-timing-function: var(--ease-out-quart);
+}
+::view-transition-image-pair(.morph) {
+  animation-name: via-blur;
+}
+
+/* Skeleton yields downward, real content arrives upward. */
+::view-transition-old(.slide-down) {
+  animation:
+    var(--duration-exit) ease-out both fade reverse,
+    var(--duration-exit) ease-out both slide-y reverse;
+}
+::view-transition-new(.slide-up) {
+  animation:
+    var(--duration-enter) ease-in var(--duration-exit) both fade,
+    var(--duration-move) var(--ease-out-quart) both slide-y;
+}
+
+@keyframes via-blur {
+  30% {
+    filter: blur(3px);
+  }
+}
+@keyframes fade {
+  from {
+    filter: blur(3px);
+    opacity: 0;
+  }
+  to {
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+@keyframes slide-y {
+  from {
+    transform: translateY(12px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+/* Home entrance: the on-air lead rises in once, the just-aired list cascades after it. */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.rise {
+  animation: rise 520ms var(--ease-out-quart) both;
+}
+
+/* "Tuning in" while a player loads: the tally light pulses until the picture arrives. */
+@keyframes tuning {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+}
+.tuning {
+  animation: tuning 1s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .tally {
+  .tally,
+  .rise,
+  .tuning,
+  .settle,
+  .progress-run {
     animation: none;
+  }
+  /* The crawl stops and becomes a normal sideways-scrollable list. */
+  .ticker-track {
+    animation: none;
+  }
+  .ticker {
+    overflow-x: auto;
+  }
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
   }
   * {
     scroll-behavior: auto !important;
+    transition-duration: 0s !important;
   }
 }

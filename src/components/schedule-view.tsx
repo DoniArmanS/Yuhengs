@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import type { AiringSlot } from "@/lib/types";
-import { displayTitle } from "@/lib/format";
+import { displayTitle, slotKey } from "@/lib/format";
 
 const noop = () => () => {};
 // Read once in the browser; the server snapshot is null, so prerender never touches the clock.
@@ -16,7 +16,8 @@ function dayKey(d: Date) {
 }
 
 /** Groups by the viewer's local day, so it renders only in the browser. */
-export function ScheduleView({ slots }: { slots: AiringSlot[] }) {
+export function ScheduleView({ slots, readyKeys }: { slots: AiringSlot[]; readyKeys: string[] }) {
+  const ready = new Set(readyKeys);
   const now = useSyncExternalStore(noop, getVisitStart, () => null);
   const [selected, setSelected] = useState(0);
 
@@ -75,6 +76,7 @@ export function ScheduleView({ slots }: { slots: AiringSlot[] }) {
           <ol className="divide-y divide-rule/50 rounded-[3px] border border-rule/70 bg-panel/50">
             {list.map((slot) => {
               const aired = slot.airingAt * 1000 <= now;
+              const watchable = aired && ready.has(slotKey(slot));
               const time = new Date(slot.airingAt * 1000).toLocaleTimeString(undefined, {
                 hour: "numeric",
                 minute: "2-digit",
@@ -82,7 +84,7 @@ export function ScheduleView({ slots }: { slots: AiringSlot[] }) {
               return (
                 <li key={`${slot.media.id}-${slot.episode}`}>
                   <Link
-                    href={aired ? `/watch/${slot.media.id}/${slot.episode}` : `/anime/${slot.media.id}`}
+                    href={watchable ? `/watch/${slot.media.id}/${slot.episode}` : `/anime/${slot.media.id}`}
                     className="flex items-center gap-4 px-4 py-3 hover:bg-panel-raised/50"
                   >
                     <span className={`w-20 shrink-0 text-sm tabular-nums ${aired ? "text-faint" : "font-semibold text-guide"}`}>
@@ -103,8 +105,8 @@ export function ScheduleView({ slots }: { slots: AiringSlot[] }) {
                         {slot.media.episodes ? ` of ${slot.media.episodes}` : ""}
                       </span>
                     </span>
-                    <span className={`hidden shrink-0 text-sm sm:block ${aired ? "font-semibold text-paper" : "text-faint"}`}>
-                      {aired ? "Watch now" : "Upcoming"}
+                    <span className={`hidden shrink-0 text-sm sm:block ${watchable ? "font-semibold text-paper" : aired ? "text-guide" : "text-faint"}`}>
+                      {watchable ? "Watch now" : aired ? "Not ready yet" : "Upcoming"}
                     </span>
                   </Link>
                 </li>

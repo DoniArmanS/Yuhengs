@@ -62,3 +62,26 @@ export function availableEpisodes(anime: Pick<AnimeCard, "episodes" | "status" |
   }
   return anime.episodes ?? 0;
 }
+
+/**
+ * View transition names must be unique on a page. Given rows in page order,
+ * returns one set per row holding the ids that appear there first.
+ */
+export function firstAppearances(rows: { id: number }[][], exclude: number[] = []): Set<number>[] {
+  const seen = new Set(exclude);
+  return rows.map((row) => {
+    const mine = new Set<number>();
+    for (const { id } of row) {
+      if (!seen.has(id)) {
+        seen.add(id);
+        mine.add(id);
+      }
+    }
+    return mine;
+  });
+}
+
+/** Identifies one episode of one show, e.g. "154587:3". */
+export function slotKey(slot: { episode: number; media: { id: number } }): string {
+  return `${slot.media.id}:${slot.episode}`;
+}

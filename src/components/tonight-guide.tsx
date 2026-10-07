@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef } from "react";
 import type { AiringSlot } from "@/lib/types";
-import { displayTitle } from "@/lib/format";
+import { displayTitle, slotKey } from "@/lib/format";
 import { useNow } from "@/lib/use-now";
+import { SectionHeading } from "./section-heading";
 
 const HOUR_PX = 320;
 const BLOCK_MIN = 24; // a typical episode slot
@@ -38,32 +39,33 @@ const timeFmt = new Intl.DateTimeFormat(undefined, { hour: "2-digit", minute: "2
  * A TV-guide strip of the next day's episodes in the viewer's own time,
  * with a live "now" marker. Client-only: positions depend on the local clock.
  */
-export function TonightGuide({ slots }: { slots: AiringSlot[] }) {
+export function TonightGuide({ slots, readyKeys }: { slots: AiringSlot[]; readyKeys: string[] }) {
   const now = useNow();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const hasNow = now !== null;
 
-  // Open the strip with "now" near the left edge, once.
+  // Open the strip at the next upcoming episode (or "now" if one is close), once,
+  // so a quiet hour doesn't greet people with an empty panel.
   useEffect(() => {
     if (!hasNow || !scrollerRef.current) return;
-    scrollerRef.current.scrollLeft = (BEFORE_H - 0.75) * HOUR_PX;
-  }, [hasNow]);
+    const t = Math.floor(Date.now() / 1000);
+    const start = Math.floor((t - BEFORE_H * 3600) / 3600) * 3600;
+    const next = slots.find((s) => s.airingAt > t);
+    const target = next?.airingAt ?? t;
+    scrollerRef.current.scrollLeft = ((target - start) / 3600) * HOUR_PX - HOUR_PX * 0.25;
+  }, [hasNow, slots]);
 
   return (
-    <section aria-labelledby="tonight" className="mx-auto mt-14 max-w-[1400px] px-4 sm:px-6 lg:px-10">
-      <div className="mb-4 flex items-end justify-between gap-4">
-        <div>
-          <h2 id="tonight" className="condensed text-3xl font-extrabold">
-            Coming up
-          </h2>
-          <p className="mt-1 text-sm text-dim">The next 24 hours of new episodes, in your time</p>
-        </div>
-        <Link href="/schedule" className="shrink-0 text-sm font-semibold underline-offset-4 hover:underline">
-          Week view
-        </Link>
-      </div>
+    <section aria-labelledby="tonight" className="mx-auto mt-16 max-w-[1400px] px-4 sm:px-6 lg:px-10">
+      <SectionHeading
+        id="tonight"
+        title="Coming up"
+        description="The next 24 hours of new episodes, in your time"
+        href="/schedule"
+        linkLabel="Week view"
+      />
 
-      {now === null ? <GuideSkeleton /> : <Strip slots={slots} now={now} scrollerRef={scrollerRef} />}
+      {now === null ? <GuideSkeleton /> : <Strip slots={slots} now={now} scrollerRef={scrollerRef} ready={new Set(readyKeys)} />}
     </section>
   );
 }
@@ -72,10 +74,12 @@ function Strip({
   slots,
   now,
   scrollerRef,
+  ready,
 }: {
   slots: AiringSlot[];
   now: number;
   scrollerRef: React.RefObject<HTMLDivElement | null>;
+  ready: Set<string>;
 }) {
   const start = Math.floor((now - BEFORE_H * 3600) / 3600) * 3600;
   const end = start + (BEFORE_H + AFTER_H) * 3600;
@@ -115,6 +119,7 @@ function Strip({
         <ol className="absolute inset-x-0 top-9">
           {placed.map(({ slot, left, lane }) => {
             const aired = slot.airingAt <= now;
+            const watchable = aired && ready.has(slotKey(slot));
             return (
               <li
                 key={`${slot.media.id}-${slot.episode}`}
@@ -122,7 +127,7 @@ function Strip({
                 style={{ left, top: lane * LANE_PX, width: blockWidth - 6, height: LANE_PX - 8 }}
               >
                 <Link
-                  href={aired ? `/watch/${slot.media.id}/${slot.episode}` : `/anime/${slot.media.id}`}
+                  href={watchable ? `/watch/${slot.media.id}/${slot.episode}` : `/anime/${slot.media.id}`}
                   className={`flex h-full flex-col justify-between rounded-[3px] border px-2.5 py-2 transition-colors ${
                     aired
                       ? "border-rule bg-ink/60 text-dim hover:border-rule-strong hover:text-paper"
@@ -134,7 +139,7 @@ function Strip({
                     <span className={`condensed font-bold tabular-nums ${aired ? "" : "text-guide"}`}>
                       {timeFmt.format(new Date(slot.airingAt * 1000))}
                     </span>
-                    <span className="text-dim">Ep {slot.episode}</span>
+                    <span className="text-dim">{aired && !watchable ? "Not ready" : `Ep ${slot.episode}`}</span>
                   </span>
                 </Link>
               </li>

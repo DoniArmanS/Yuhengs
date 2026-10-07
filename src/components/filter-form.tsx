@@ -70,7 +70,7 @@ export function FilterForm({ filters, maxYear }: { filters: SearchFilters; maxYe
         </div>
         <button
           type="submit"
-          className="rounded-[3px] transition-colors h-12 shrink-0 px-6 font-semibold text-white bg-onair hover:bg-onair-hover"
+          className="rounded-[3px] transition-[background-color,transform] duration-150 active:scale-[0.97] h-12 shrink-0 px-6 font-semibold text-white bg-onair hover:bg-onair-hover"
         >
           Search
         </button>

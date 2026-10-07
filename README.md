@@ -10,6 +10,7 @@ Built with Next.js 16 (App Router, Cache Components), React 19, TypeScript and T
 npm install
 npm run dev        # http://localhost:3000
 npm run dev:lan    # HTTPS on your local network, for testing on a phone
+npm run dev:clean  # clears the dev cache first; use it if styles ever look out of date
 npm run build && npm start
 ```
 
