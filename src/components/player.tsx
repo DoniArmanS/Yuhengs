@@ -1,16 +1,20 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react";
 import { SANDBOX_POLICY, SERVERS, type Audio } from "@/lib/providers";
 import { recordWatch } from "@/lib/history";
+import { REMOTES } from "@/lib/remote";
+import type { SkipTimes } from "@/lib/skip-times";
+import { RemoteBar } from "./remote-bar";
 
 interface Prefs {
   server: string;
   audio: Audio;
+  autoSkip: boolean;
 }
 
 const PREFS_KEY = "yuhengs:player:v1";
-const DEFAULT_PREFS: Prefs = { server: SERVERS[0].id, audio: "sub" };
+const DEFAULT_PREFS: Prefs = { server: SERVERS[0].id, audio: "sub", autoSkip: false };
 const listeners = new Set<() => void>();
 let prefsCache: Prefs | null = null;
 
@@ -47,6 +51,8 @@ export function Player({
   cover,
   color,
   missingOn = [],
+  skip = { op: null, ed: null },
+  nextHref = null,
 }: {
   anilistId: number;
   episode: number;
@@ -56,6 +62,10 @@ export function Player({
   color: string | null;
   /** Servers confirmed not to have this episode (sub); they're hidden from the picker. */
   missingOn?: string[];
+  /** Opening/ending timestamps, for Skip intro. */
+  skip?: SkipTimes;
+  /** Where "Next episode" goes during the ending credits. */
+  nextHref?: string | null;
 }) {
   const prefs = useSyncExternalStore(subscribe, readPrefs, () => DEFAULT_PREFS);
   // On plain-http LAN addresses, servers that need Web Crypto can't play.
@@ -70,6 +80,8 @@ export function Player({
   const src = active?.url(anilistId, episode, prefs.audio);
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const loading = Boolean(src) && loadedSrc !== src;
+  const frameRef = useRef<HTMLIFrameElement>(null);
+  const remote = active ? REMOTES[active.id] : undefined;
 
   // Next.js keeps up to 3 visited pages mounted but hidden (React <Activity>) so
   // Back is instant. A hidden iframe keeps playing, which left the previous
@@ -101,6 +113,7 @@ export function Player({
       <div className="relative z-30 aspect-video overflow-hidden rounded-[3px] border border-rule-strong bg-ink-deep shadow-2xl shadow-black/40 [grid-area:video] max-md:sticky max-md:top-[calc(4rem+env(safe-area-inset-top))] max-md:-mx-4 max-md:rounded-none max-md:border-x-0 max-md:border-t-0">
         {src && onScreen ? (
           <iframe
+            ref={frameRef}
             key={src}
             src={src}
             onLoad={() => setLoadedSrc(src)}
@@ -127,6 +140,17 @@ export function Player({
       </div>
 
       <div className="flex min-w-0 flex-col gap-3 [grid-area:controls]">
+      {remote && src && onScreen ? (
+        <RemoteBar
+          key={src}
+          frameRef={frameRef}
+          remote={remote}
+          skip={skip}
+          nextHref={nextHref}
+          autoSkip={prefs.autoSkip}
+          onAutoSkipChange={(on) => writePrefs({ autoSkip: on })}
+        />
+      ) : null}
       <div className="flex items-center gap-3 rounded-[3px] border border-rule bg-panel p-2.5 sm:p-4">
         <div className="flex min-w-0 flex-1 items-center gap-3">
           <span className="text-sm text-dim max-sm:sr-only" id="server-label">

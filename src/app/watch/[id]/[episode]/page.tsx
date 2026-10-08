@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { LiveCheck } from "@/components/live-check";
 import { checkEpisode, latestReadyEpisode } from "@/lib/availability";
+import { getSkipTimes } from "@/lib/skip-times";
 
 export async function generateMetadata(props: PageProps<"/watch/[id]/[episode]">): Promise<Metadata> {
   const { id, episode } = await props.params;
@@ -64,7 +65,11 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
   if (episode !== requested) redirect(`/watch/${anime.id}/${episode}`);
 
   // Aired isn't the same as playable: ask the servers what they actually have.
-  const [ready, check] = await Promise.all([latestReadyEpisode(anime.id, aired), checkEpisode(anime.id, episode)]);
+  const [ready, check, skip] = await Promise.all([
+    latestReadyEpisode(anime.id, aired),
+    checkEpisode(anime.id, episode),
+    getSkipTimes(anime.idMal, episode),
+  ]);
   const uploading = episode > ready;
   const missingOn = [check.aniembed === false && "aniembed", check.megaplay === false && "megaplay"].filter(
     (s): s is string => Boolean(s),
@@ -129,6 +134,8 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
             cover={anime.coverImage.large}
             color={anime.coverImage.color}
             missingOn={missingOn}
+            skip={skip}
+            nextHref={episode < ready ? `/watch/${anime.id}/${episode + 1}` : null}
           />
         )}
 
