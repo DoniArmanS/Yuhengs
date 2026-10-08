@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 import { SANDBOX_POLICY, SERVERS, type Audio } from "@/lib/providers";
 import { recordWatch } from "@/lib/history";
 
@@ -71,6 +71,24 @@ export function Player({
   const [loadedSrc, setLoadedSrc] = useState<string | null>(null);
   const loading = Boolean(src) && loadedSrc !== src;
 
+  // Next.js keeps up to 3 visited pages mounted but hidden (React <Activity>) so
+  // Back is instant. A hidden iframe keeps playing, which left the previous
+  // episode running in the background. So the iframe only exists while this
+  // page is visible: the layout-effect cleanup runs as the page is hidden and
+  // removes it; the effect runs again when the page is shown and brings back a
+  // fresh one. (Navigating the existing iframe instead tangles with the
+  // browser's session history and breaks the Back button.)
+  const [onScreen, setOnScreen] = useState(true);
+  useLayoutEffect(() => {
+    // Re-showing a hidden page must put the player back before paint.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setOnScreen(true);
+    return () => {
+      setOnScreen(false);
+      setLoadedSrc(null); // show "Tuning in…" again while it reloads
+    };
+  }, []);
+
   useEffect(() => {
     recordWatch({ id: anilistId, title, cover, color, episode, totalEpisodes });
   }, [anilistId, title, cover, color, episode, totalEpisodes]);
@@ -78,7 +96,7 @@ export function Player({
   return (
     <div>
       <div className="relative aspect-video overflow-hidden rounded-[3px] border border-rule-strong bg-ink-deep shadow-2xl shadow-black/40">
-        {src ? (
+        {src && onScreen ? (
           <iframe
             key={src}
             src={src}
