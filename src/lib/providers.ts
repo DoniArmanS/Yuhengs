@@ -20,19 +20,17 @@ export interface StreamServer {
  * verified in Chromium on 2026-10-07 (Frieren, One Piece 1100, Dandadan,
  * Solo Leveling dub).
  *
+ * MegaPlay leads (2026-10-08): its own controls respond on the first tap and
+ * it opened no pop-ups in testing. AniEmbed lays an invisible ad layer over
+ * its player that swallows the first two taps (we sandbox it, so the ad never
+ * opens, but the tap is still lost). MegaPlay needs a secure page; on plain
+ * http the list falls through to AniEmbed.
+ *
  * Removed after testing: VidLink (its anime API points at localhost),
  * VidSrc.su (blank page), Anixo (blocks other domains), VidPlus (blank),
  * Videasy (shows the episode but the stream never starts).
  */
 export const SERVERS: StreamServer[] = [
-  {
-    id: "aniembed",
-    name: "AniEmbed",
-    audio: ["sub", "dub"],
-    sandbox: true,
-    secureOnly: false,
-    url: (id, ep, audio) => `https://aniembed.se/e/${id}/${ep}?lang=${audio}`,
-  },
   {
     id: "megaplay",
     name: "MegaPlay",
@@ -40,6 +38,14 @@ export const SERVERS: StreamServer[] = [
     sandbox: false,
     secureOnly: true,
     url: (id, ep, audio) => `https://megaplay.buzz/stream/ani/${id}/${ep}/${audio}`,
+  },
+  {
+    id: "aniembed",
+    name: "AniEmbed",
+    audio: ["sub", "dub"],
+    sandbox: true,
+    secureOnly: false,
+    url: (id, ep, audio) => `https://aniembed.se/e/${id}/${ep}?lang=${audio}`,
   },
   {
     id: "vidnest",

@@ -1,10 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode, type RefObject } from "react";
 import type { Remote } from "@/lib/remote";
 import type { SkipTimes } from "@/lib/skip-times";
-import { Back10Icon, ChevronRightIcon, Forward10Icon, PauseIcon, PlayIcon, SkipIcon } from "./icons";
+import { Back10Icon, ChevronRightIcon, Forward10Icon, FullscreenIcon, PauseIcon, PlayIcon, SkipIcon } from "./icons";
 
 interface Playback {
   time: number | null;
@@ -13,6 +13,10 @@ interface Playback {
   /** Date.now() when `time` was reported, to extrapolate between reports. */
   at: number;
 }
+
+const noop = () => () => {};
+const fullscreenSupported = () =>
+  Boolean(document.fullscreenEnabled || (document as Document & { webkitFullscreenEnabled?: boolean }).webkitFullscreenEnabled);
 
 const fmt = (s: number) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
@@ -125,6 +129,22 @@ export function RemoteBar({
     }
   };
 
+  // Fullscreen the whole player from outside it (no ad layer in the way), and
+  // turn phones sideways where the browser allows it.
+  const canFullscreen = useSyncExternalStore(noop, fullscreenSupported, () => false);
+  const fullscreen = async () => {
+    const el = frameRef.current as (HTMLIFrameElement & { webkitRequestFullscreen?: () => void }) | null;
+    if (!el) return;
+    try {
+      if (el.requestFullscreen) await el.requestFullscreen();
+      else el.webkitRequestFullscreen?.();
+      const orientation = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+      await orientation.lock?.("landscape");
+    } catch {
+      // Not allowed here (e.g. desktop orientation lock); fullscreen itself still applies.
+    }
+  };
+
   // Keyboard: Space/K play-pause, J/L ±10 s (ignored while typing).
   const actions = useRef({ toggle, seekBy });
   useEffect(() => {
@@ -202,6 +222,11 @@ export function RemoteBar({
           <RoundButton label="Forward 10 seconds" onClick={() => seekBy(10)}>
             <Forward10Icon className="size-6" />
           </RoundButton>
+          {canFullscreen ? (
+            <RoundButton label="Fullscreen" onClick={fullscreen}>
+              <FullscreenIcon className="size-6" />
+            </RoundButton>
+          ) : null}
         </div>
         {now !== null ? (
           <span className="condensed text-base font-bold text-dim tabular-nums">

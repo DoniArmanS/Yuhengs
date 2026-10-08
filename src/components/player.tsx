@@ -13,25 +13,44 @@ interface Prefs {
   autoSkip: boolean;
 }
 
-const PREFS_KEY = "yuhengs:player:v1";
+// v2 stores only what the viewer explicitly chose, so a changed default server
+// reaches everyone who never picked one. v1 saved the whole object (including
+// the then-default server) whenever any setting changed; we carry over its
+// audio and auto-skip choices but not that implicit server.
+const PREFS_KEY = "yuhengs:player:v2";
+const LEGACY_KEY = "yuhengs:player:v1";
 const DEFAULT_PREFS: Prefs = { server: SERVERS[0].id, audio: "sub", autoSkip: false };
 const listeners = new Set<() => void>();
+let stored: Partial<Prefs> | null = null;
 let prefsCache: Prefs | null = null;
 
-function readPrefs(): Prefs {
-  if (prefsCache) return prefsCache;
+function readStored(): Partial<Prefs> {
+  if (stored) return stored;
   try {
-    prefsCache = { ...DEFAULT_PREFS, ...JSON.parse(localStorage.getItem(PREFS_KEY) ?? "{}") };
+    const v2 = localStorage.getItem(PREFS_KEY);
+    if (v2) stored = JSON.parse(v2);
+    else {
+      const v1 = JSON.parse(localStorage.getItem(LEGACY_KEY) ?? "{}") as Partial<Prefs>;
+      stored = {
+        ...(v1.audio ? { audio: v1.audio } : {}),
+        ...(typeof v1.autoSkip === "boolean" ? { autoSkip: v1.autoSkip } : {}),
+      };
+    }
   } catch {
-    prefsCache = DEFAULT_PREFS;
+    stored = {};
   }
-  return prefsCache!;
+  return stored!;
+}
+
+function readPrefs(): Prefs {
+  return (prefsCache ??= { ...DEFAULT_PREFS, ...readStored() });
 }
 
 function writePrefs(next: Partial<Prefs>) {
-  prefsCache = { ...readPrefs(), ...next };
+  stored = { ...readStored(), ...next };
+  prefsCache = { ...DEFAULT_PREFS, ...stored };
   try {
-    localStorage.setItem(PREFS_KEY, JSON.stringify(prefsCache));
+    localStorage.setItem(PREFS_KEY, JSON.stringify(stored));
   } catch {}
   listeners.forEach((l) => l());
 }
@@ -203,9 +222,11 @@ export function Player({
       </div>
 
       <p className="text-xs text-dim sm:text-sm">
-        {active?.sandbox
-          ? `${active.name} runs with pop-ups blocked. If the video won’t load, switch servers; your choice is remembered.`
-          : `${active?.name ?? "This server"} may open pop-up ads; close them and return here. If the video won’t load, switch servers.`}
+        {active?.id === "aniembed"
+          ? "AniEmbed’s own buttons ignore your first two taps: an ad layer we block catches them. Use the controls above, or tap again."
+          : active?.sandbox
+            ? `${active.name} runs with pop-ups blocked. If the video won’t load, switch servers; your choice is remembered.`
+            : `${active?.name ?? "This server"} isn’t sandboxed: if a pop-up opens, close it and come back. If the video won’t load, switch servers.`}
       </p>
       </div>
     </div>
