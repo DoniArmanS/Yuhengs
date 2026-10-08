@@ -30,7 +30,7 @@ export function OnAir({ slides, justAired }: { slides: SpotlightSlide[]; justAir
         <div className="rise rounded-[4px] border border-rule bg-panel" style={{ animationDelay: "120ms" }}>
           <h3 className="flex items-center justify-between border-b border-rule px-4 py-3 text-sm font-semibold">
             Just aired
-            <Link href="/schedule" className="font-medium text-dim underline-offset-4 hover:text-paper hover:underline">
+            <Link href="/schedule" className="-my-3 inline-flex min-h-11 items-center font-medium text-dim underline-offset-4 hover:text-paper hover:underline">
               Full schedule
             </Link>
           </h3>

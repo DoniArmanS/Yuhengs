@@ -26,7 +26,7 @@ export function SectionHeading({
         </h2>
         <span className="h-px flex-1 bg-gradient-to-r from-rule-strong to-transparent" aria-hidden />
         {href ? (
-          <Link href={href} className="shrink-0 text-sm font-semibold text-dim underline-offset-4 transition-colors hover:text-paper hover:underline">
+          <Link href={href} className="-my-2 inline-flex min-h-11 shrink-0 items-center text-sm font-semibold text-dim underline-offset-4 transition-colors hover:text-paper hover:underline">
             {linkLabel}
           </Link>
         ) : null}

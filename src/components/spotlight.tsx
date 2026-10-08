@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ChevronLeftIcon, ChevronRightIcon, PlayIcon } from "./icons";
 import { RelativeTime } from "./relative-time";
 
@@ -54,6 +54,24 @@ export function Spotlight({ slides }: { slides: SpotlightSlide[] }) {
   }, [running, index, slides.length]);
 
   const go = (next: number) => setIndex((next + slides.length) % slides.length);
+
+  // Swipe between slides on touch screens; mostly-vertical drags are left to page scroll.
+  const touch = useRef<{ x: number; y: number } | null>(null);
+  const onTouchStart = (e: React.TouchEvent) => {
+    const t = e.touches[0];
+    touch.current = { x: t.clientX, y: t.clientY };
+    setHeld(true);
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const start = touch.current;
+    touch.current = null;
+    setHeld(false);
+    if (!start || slides.length < 2) return;
+    const t = e.changedTouches[0];
+    const dx = t.clientX - start.x;
+    const dy = t.clientY - start.y;
+    if (Math.abs(dx) > 48 && Math.abs(dx) > Math.abs(dy) * 1.5) go(index + (dx < 0 ? 1 : -1));
+  };
   const slide = slides[index];
 
   return (
@@ -66,6 +84,8 @@ export function Spotlight({ slides }: { slides: SpotlightSlide[] }) {
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget as Node)) setHeld(false);
       }}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
       onKeyDown={(e) => {
         if (e.key === "ArrowRight") go(index + 1);
         if (e.key === "ArrowLeft") go(index - 1);

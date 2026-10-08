@@ -19,6 +19,7 @@ import { EpisodePicker } from "@/components/episode-picker";
 import { WatchCta } from "@/components/watch-cta";
 import { LocalTime } from "@/components/local-time";
 import { LiveCheck } from "@/components/live-check";
+import { ExpandableText } from "@/components/expandable-text";
 import { latestReadyEpisode } from "@/lib/availability";
 import { StarIcon } from "@/components/icons";
 
@@ -137,7 +138,7 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
               <Link
                 key={genre}
                 href={`/search?genre=${encodeURIComponent(genre)}`}
-                className="text-dim underline-offset-4 hover:text-paper hover:underline"
+                className="inline-flex min-h-10 items-center text-dim underline-offset-4 hover:text-paper hover:underline"
               >
                 {genre}
               </Link>
@@ -177,11 +178,10 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
           </div>
 
           {description ? (
-            <div className="mt-8 max-w-[68ch] space-y-3 leading-relaxed text-paper/85">
-              {description.split(/\n+/).map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
+            <ExpandableText
+              paragraphs={description.split(/\n+/)}
+              className="mt-6 max-w-[68ch] leading-relaxed text-paper/85 md:mt-8"
+            />
           ) : null}
 
           <dl className="mt-8 grid max-w-2xl grid-cols-2 gap-x-8 gap-y-4 border-t border-rule/60 pt-6 sm:grid-cols-3">

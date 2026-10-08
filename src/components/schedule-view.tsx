@@ -50,7 +50,7 @@ export function ScheduleView({ slots, readyKeys }: { slots: AiringSlot[]; readyK
               type="button"
               aria-pressed={isSelected}
               onClick={() => setSelected(i)}
-              className={`flex min-w-[88px] shrink-0 flex-col items-center rounded-[3px] border px-3 py-2.5 transition-colors ${
+              className={`relative flex min-w-[88px] shrink-0 flex-col items-center rounded-[3px] border px-3 py-2.5 transition-colors ${
                 isSelected
                   ? "border-paper bg-paper text-ink"
                   : "border-rule bg-panel text-paper hover:border-paper/50"

@@ -1,10 +1,10 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useRef, useTransition, type FormEvent } from "react";
+import { useRef, useState, useTransition, type FormEvent } from "react";
 import type { SearchFilters } from "@/lib/anilist";
 import { FORMATS, GENRES, SEASONS, SORTS, STATUSES } from "@/lib/filters";
-import { SearchIcon } from "./icons";
+import { FilterIcon, SearchIcon } from "./icons";
 
 const selectClass =
   "h-10 w-full rounded-[3px] border border-rule bg-panel px-3 text-sm text-paper focus:border-paper/50 focus:ring-2 focus:ring-paper/15 focus:outline-none";
@@ -17,6 +17,9 @@ export function FilterForm({ filters, maxYear }: { filters: SearchFilters; maxYe
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const years = Array.from({ length: maxYear - 1969 }, (_, i) => String(maxYear - i));
+  // Phones get the filters behind a toggle so results start above the fold.
+  const active = [filters.genre, filters.season, filters.year, filters.format, filters.status, filters.sort].filter(Boolean).length;
+  const [showFilters, setShowFilters] = useState(false);
 
   const debounce = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -64,19 +67,40 @@ export function FilterForm({ filters, maxYear }: { filters: SearchFilters; maxYe
             defaultValue={filters.search}
             autoComplete="off"
             spellCheck={false}
-            placeholder="Search by title, in English or romaji…"
+            placeholder="Search titles…"
             className="h-12 w-full rounded-[3px] border border-rule-strong bg-panel pr-4 pl-12 text-base text-paper placeholder:text-faint focus:border-paper/60 focus:ring-2 focus:ring-paper/15 focus:outline-none"
           />
         </div>
         <button
           type="submit"
-          className="rounded-[3px] transition-[background-color,transform] duration-150 active:scale-[0.97] h-12 shrink-0 px-6 font-semibold text-white bg-onair hover:bg-onair-hover"
+          className="grid h-12 shrink-0 place-items-center rounded-[3px] bg-onair px-4 font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-onair-hover active:scale-[0.97] sm:px-6"
         >
-          Search
+          <span className="max-sm:sr-only">Search</span>
+          <SearchIcon className="size-5 sm:hidden" />
+        </button>
+        <button
+          type="button"
+          onClick={() => setShowFilters((v) => !v)}
+          aria-expanded={showFilters}
+          aria-controls="filter-panel"
+          className={`relative grid size-12 shrink-0 place-items-center rounded-[3px] border transition-colors sm:hidden ${
+            showFilters ? "border-paper bg-paper text-ink" : "border-rule-strong bg-panel text-paper"
+          }`}
+        >
+          <FilterIcon />
+          <span className="sr-only">Filters{active ? `, ${active} active` : ""}</span>
+          {active ? (
+            <span className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-onair text-[11px] font-bold text-white" aria-hidden>
+              {active}
+            </span>
+          ) : null}
         </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div
+        id="filter-panel"
+        className={`mt-4 grid-cols-2 gap-3 sm:grid sm:grid-cols-3 lg:grid-cols-6 ${showFilters ? "grid" : "hidden"}`}
+      >
         <Select label="Genre" name="genre" value={filters.genre} options={GENRES.map((g) => ({ value: g, label: g }))} />
         <Select label="Season" name="season" value={filters.season} options={SEASONS} />
         <Select label="Year" name="year" value={filters.year?.toString()} options={years.map((y) => ({ value: y, label: y }))} />

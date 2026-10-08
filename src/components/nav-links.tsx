@@ -20,7 +20,7 @@ export function NavLinksStatic() {
 
 function NavList({ pathname }: { pathname: string | null }) {
   return (
-    <nav aria-label="Main" className="hidden items-center gap-1 sm:flex">
+    <nav aria-label="Main" className="hidden items-center gap-1 md:flex">
       {LINKS.map(({ href, label }) => {
         const active = pathname !== null && (href === "/" ? pathname === "/" : pathname.startsWith(href));
         return (

@@ -52,6 +52,14 @@ export function removeFromHistory(id: number) {
   listeners.forEach((l) => l());
 }
 
+export function clearHistory() {
+  cache = EMPTY;
+  try {
+    localStorage.removeItem(KEY);
+  } catch {}
+  listeners.forEach((l) => l());
+}
+
 function subscribe(listener: () => void) {
   listeners.add(listener);
   const onStorage = (e: StorageEvent) => {

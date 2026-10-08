@@ -93,9 +93,12 @@ export function Player({
     recordWatch({ id: anilistId, title, cover, color, episode, totalEpisodes });
   }, [anilistId, title, cover, color, episode, totalEpisodes]);
 
+  // `contents`: the video and the controls become items of the watch page's
+  // grid, which places them per screen size. On phones the video is pinned
+  // under the header (sticky) and runs edge to edge.
   return (
-    <div>
-      <div className="relative aspect-video overflow-hidden rounded-[3px] border border-rule-strong bg-ink-deep shadow-2xl shadow-black/40">
+    <div className="contents">
+      <div className="relative z-30 aspect-video overflow-hidden rounded-[3px] border border-rule-strong bg-ink-deep shadow-2xl shadow-black/40 [grid-area:video] max-md:sticky max-md:top-[calc(4rem+env(safe-area-inset-top))] max-md:-mx-4 max-md:rounded-none max-md:border-x-0 max-md:border-t-0">
         {src && onScreen ? (
           <iframe
             key={src}
@@ -123,12 +126,14 @@ export function Player({
         ) : null}
       </div>
 
-      <div className="mt-4 flex flex-col items-start gap-4 rounded-[3px] border border-rule bg-panel p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-sm text-dim" id="server-label">
+      <div className="flex min-w-0 flex-col gap-3 [grid-area:controls]">
+      <div className="flex items-center gap-3 rounded-[3px] border border-rule bg-panel p-2.5 sm:p-4">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="text-sm text-dim max-sm:sr-only" id="server-label">
             Server
           </span>
-          <div role="group" aria-labelledby="server-label" className="flex flex-wrap gap-2">
+          {/* One swipeable row on phones instead of wrapping onto several lines */}
+          <div role="group" aria-labelledby="server-label" className="scrollbar-none -my-1 flex min-w-0 gap-2 overflow-x-auto py-1">
             {servers.map((s, i) => {
               const selected = s.id === active?.id;
               return (
@@ -137,7 +142,7 @@ export function Player({
                   type="button"
                   aria-pressed={selected}
                   onClick={() => writePrefs({ server: s.id })}
-                  className={`h-9 rounded-[2px] border px-3.5 text-sm font-semibold transition-colors ${
+                  className={`h-10 shrink-0 rounded-[2px] border px-3.5 text-sm font-semibold whitespace-nowrap transition-colors ${
                     selected
                       ? "border-paper bg-paper text-ink"
                       : "border-rule bg-ink/60 text-paper hover:border-paper/50"
@@ -162,7 +167,7 @@ export function Player({
                 type="button"
                 aria-pressed={selected}
                 onClick={() => writePrefs({ audio })}
-                className={`h-8 rounded-[3px] px-3.5 text-sm font-semibold transition-colors ${
+                className={`h-9 rounded-[3px] px-3.5 text-sm font-semibold transition-colors ${
                   selected ? "bg-paper text-ink" : "text-dim hover:text-paper"
                 }`}
               >
@@ -173,12 +178,11 @@ export function Player({
         </div>
       </div>
 
-      <div className="mt-3 text-sm text-dim">
-        <p>
-          {active?.sandbox
-            ? `${active.name} runs with pop-ups blocked. If the video won’t load, switch servers; your choice is remembered.`
-            : `${active?.name ?? "This server"} may open pop-up ads; close them and return here. If the video won’t load, switch servers.`}
-        </p>
+      <p className="text-xs text-dim sm:text-sm">
+        {active?.sandbox
+          ? `${active.name} runs with pop-ups blocked. If the video won’t load, switch servers; your choice is remembered.`
+          : `${active?.name ?? "This server"} may open pop-up ads; close them and return here. If the video won’t load, switch servers.`}
+      </p>
       </div>
     </div>
   );
