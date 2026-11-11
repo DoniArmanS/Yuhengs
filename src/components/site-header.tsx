@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { Logo } from "./logo";
 import { NavLinks, NavLinksStatic } from "./nav-links";
 import { HeaderSearch } from "./header-search";
-import { SearchIcon } from "./icons";
+import { SearchIcon, ShuffleIcon } from "./icons";
 
 export function SiteHeader() {
   return (
@@ -19,6 +19,15 @@ export function SiteHeader() {
 
         <div className="ml-auto flex items-center gap-2">
           <HeaderSearch />
+          {/* A plain link: /random is a redirecting route handler, so it needs a full request. */}
+          <a
+            href="/random"
+            className="grid size-10 place-items-center rounded-full border border-rule text-paper transition-colors hover:border-rule-strong hover:bg-panel"
+            aria-label="Random anime"
+            title="Random anime"
+          >
+            <ShuffleIcon className="size-[18px]" />
+          </a>
           <Link
             href="/search"
             className="grid size-10 place-items-center rounded-[3px] text-dim hover:text-paper md:hidden"

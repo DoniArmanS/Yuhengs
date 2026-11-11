@@ -57,7 +57,7 @@ export function AnimeCard({
           className="absolute inset-0 flex items-end bg-gradient-to-t from-ink via-ink/60 to-transparent p-2.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
           aria-hidden
         >
-          <span className="absolute top-1/2 left-1/2 grid size-11 -translate-1/2 scale-75 place-items-center rounded-full bg-onair text-white shadow-[0_6px_24px_-4px_rgb(255_68_56/0.8)] transition-transform duration-300 ease-out group-hover:scale-100">
+          <span className="absolute top-1/2 left-1/2 grid size-11 -translate-1/2 scale-75 place-items-center rounded-full bg-onair text-on-onair shadow-[0_6px_24px_-4px_rgb(187_154_247/0.8)] transition-transform duration-300 ease-out group-hover:scale-100">
             <PlayIcon className="size-4 translate-x-px" />
           </span>
           {anime.genres.length ? (

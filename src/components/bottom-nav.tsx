@@ -43,7 +43,7 @@ function Bar({ pathname }: { pathname: string | null }) {
                 }`}
               >
                 {active ? (
-                  <span className="absolute top-1.5 size-1.5 rounded-full bg-onair shadow-[0_0_8px_rgb(255_68_56/0.8)]" aria-hidden />
+                  <span className="absolute top-1.5 size-1.5 rounded-full bg-onair shadow-[0_0_8px_rgb(187_154_247/0.8)]" aria-hidden />
                 ) : null}
                 <Icon className="size-[22px]" />
                 {label}

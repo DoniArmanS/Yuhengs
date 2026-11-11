@@ -73,7 +73,7 @@ export function FilterForm({ filters, maxYear }: { filters: SearchFilters; maxYe
         </div>
         <button
           type="submit"
-          className="grid h-12 shrink-0 place-items-center rounded-[3px] bg-onair px-4 font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-onair-hover active:scale-[0.97] sm:px-6"
+          className="grid h-12 shrink-0 place-items-center rounded-[3px] bg-onair px-4 font-semibold text-on-onair transition-[background-color,transform] duration-150 hover:bg-onair-hover active:scale-[0.97] sm:px-6"
         >
           <span className="max-sm:sr-only">Search</span>
           <SearchIcon className="size-5 sm:hidden" />
@@ -90,7 +90,7 @@ export function FilterForm({ filters, maxYear }: { filters: SearchFilters; maxYe
           <FilterIcon />
           <span className="sr-only">Filters{active ? `, ${active} active` : ""}</span>
           {active ? (
-            <span className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-onair text-[11px] font-bold text-white" aria-hidden>
+            <span className="absolute -top-1.5 -right-1.5 grid size-5 place-items-center rounded-full bg-onair text-[11px] font-bold text-on-onair" aria-hidden>
               {active}
             </span>
           ) : null}

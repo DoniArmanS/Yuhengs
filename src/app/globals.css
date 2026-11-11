@@ -1,19 +1,26 @@
 @import "tailwindcss";
 
 @theme {
-  /* Late-night broadcast: a monitor-navy studio, a red on-air tally, amber guide times. */
-  --color-ink: #0f1626;
-  --color-ink-deep: #0a101d;
-  --color-panel: #161f33;
-  --color-panel-raised: #1d2840;
-  --color-rule: #24304a;
-  --color-rule-strong: #3a4866;
-  --color-onair: #ff4438;
-  --color-onair-hover: #ff6a5f;
-  --color-guide: #ffb547;
-  --color-paper: #eef2f8;
-  --color-dim: #8d9ab3;
-  --color-faint: #64718b;
+  /*
+   * Tokyo Night (folke/tokyonight.nvim, "night" variant): night-city navy,
+   * a lavender on-air tally for primary actions and live marks, cyan for air
+   * times. onair-hover and faint are derived: faint is lifted from #737aa2 so
+   * small labels pass 4.5:1 on ink and panel.
+   */
+  --color-ink: #1a1b26;
+  --color-ink-deep: #16161e;
+  --color-panel: #1f2335;
+  --color-panel-raised: #292e42;
+  --color-rule: #292e42;
+  --color-rule-strong: #3b4261;
+  --color-onair: #bb9af7;
+  --color-onair-hover: #c9aefa;
+  /* Text on an onair fill: the lavender is light, so it takes dark text. */
+  --color-on-onair: #16161e;
+  --color-guide: #7dcfff;
+  --color-paper: #c0caf5;
+  --color-dim: #a9b1d6;
+  --color-faint: #8189b3;
 
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 
@@ -29,7 +36,7 @@ html {
   scrollbar-color: var(--color-rule-strong) transparent;
   /* Keep focused elements clear of the sticky header. */
   scroll-padding-top: 5rem;
-  -webkit-tap-highlight-color: rgb(238 242 248 / 0.12);
+  -webkit-tap-highlight-color: rgb(192 202 245 / 0.12);
 }
 
 body {
@@ -52,7 +59,7 @@ label {
 
 ::selection {
   background: var(--color-onair);
-  color: white;
+  color: var(--color-on-onair);
 }
 
 :focus-visible {
@@ -88,8 +95,8 @@ label {
 .tally {
   animation: tally 1.2s ease-in-out 3;
   box-shadow:
-    0 0 0 3px rgb(255 68 56 / 0.18),
-    0 0 12px rgb(255 68 56 / 0.6);
+    0 0 0 3px rgb(187 154 247 / 0.18),
+    0 0 12px rgb(187 154 247 / 0.6);
 }
 
 /* ---------- Texture & atmosphere ---------- */
@@ -115,7 +122,7 @@ label {
   font-weight: 900;
   line-height: 0.8;
   color: transparent;
-  -webkit-text-stroke: 2px rgb(141 154 179 / 0.55);
+  -webkit-text-stroke: 2px rgb(187 154 247 / 0.5);
   paint-order: stroke fill;
 }
 
@@ -132,6 +139,61 @@ label {
 .ticker:hover .ticker-track,
 .ticker:focus-within .ticker-track {
   animation-play-state: paused;
+}
+
+/* Landing poster wall: each column holds its covers twice and slides by half its height. */
+@keyframes wall-up {
+  to {
+    transform: translateY(-50%);
+  }
+}
+@keyframes wall-down {
+  from {
+    transform: translateY(-50%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.wall-up {
+  animation: wall-up var(--wall-seconds, 80s) linear infinite;
+  will-change: transform;
+}
+.wall-down {
+  animation: wall-down var(--wall-seconds, 90s) linear infinite;
+  will-change: transform;
+}
+
+/*
+ * Keeps the hero copy readable over the wall: solid night on the left, the
+ * covers showing through on the right, a soft lavender glow between, and a
+ * fade into the page at the bottom. On narrow screens the wall sits behind
+ * the copy, so the whole width is shaded.
+ */
+.wall-shade {
+  background:
+    linear-gradient(180deg, var(--color-ink-deep) 0%, transparent 22%, transparent 72%, var(--color-ink) 100%),
+    radial-gradient(28% 40% at 58% 50%, color-mix(in srgb, var(--color-onair) 18%, transparent), transparent),
+    linear-gradient(
+      90deg,
+      var(--color-ink-deep) 0%,
+      var(--color-ink-deep) 34%,
+      color-mix(in srgb, var(--color-ink-deep) 82%, transparent) 50%,
+      color-mix(in srgb, var(--color-ink-deep) 20%, transparent) 72%,
+      color-mix(in srgb, var(--color-ink-deep) 40%, transparent) 100%
+    );
+}
+@media (width < 64rem) {
+  .wall-shade {
+    background:
+      linear-gradient(180deg, var(--color-ink-deep) 0%, transparent 28%, transparent 62%, var(--color-ink) 100%),
+      linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color-ink-deep) 95%, transparent) 0%,
+        color-mix(in srgb, var(--color-ink-deep) 82%, transparent) 60%,
+        color-mix(in srgb, var(--color-ink-deep) 55%, transparent) 100%
+      );
+  }
 }
 
 /* Spotlight art settles in once per slide (a continuous zoom redrew the whole hero every frame). */
@@ -262,6 +324,11 @@ label {
   }
   /* The crawl stops and becomes a normal sideways-scrollable list. */
   .ticker-track {
+    animation: none;
+  }
+  /* The poster wall holds still. */
+  .wall-up,
+  .wall-down {
     animation: none;
   }
   .ticker {

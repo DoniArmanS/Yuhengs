@@ -91,7 +91,7 @@ export function Spotlight({ slides }: { slides: SpotlightSlide[] }) {
         if (e.key === "ArrowLeft") go(index - 1);
       }}
       className="group/feature relative isolate flex min-h-[380px] overflow-hidden rounded-[4px] border border-rule bg-ink-deep sm:min-h-[460px]"
-      style={{ ["--ambient" as string]: slide.color ?? "#ff4438" }}
+      style={{ ["--ambient" as string]: slide.color ?? "var(--color-onair)" }}
     >
       {/* Backdrops crossfade; only the active one is visible. */}
       {slides.map((s, i) => (
@@ -138,7 +138,7 @@ export function Spotlight({ slides }: { slides: SpotlightSlide[] }) {
       <div className="relative flex w-full items-end gap-8 p-5 pt-12 sm:p-8 sm:pt-14">
         <div key={slide.id} className="rise min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-sm font-semibold">
-            <span className="rounded-[2px] bg-onair px-1.5 py-0.5 text-xs font-bold text-white">New episode</span>
+            <span className="rounded-[2px] bg-onair px-1.5 py-0.5 text-xs font-bold text-on-onair">New episode</span>
             <span className="text-paper/85">
               Episode {slide.episode} aired <RelativeTime timestamp={slide.airingAt} />
             </span>
@@ -159,7 +159,7 @@ export function Spotlight({ slides }: { slides: SpotlightSlide[] }) {
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <Link
               href={`/watch/${slide.id}/${slide.episode}`}
-              className="inline-flex h-12 items-center gap-2.5 rounded-[3px] bg-onair px-6 font-bold text-white shadow-[0_8px_30px_-6px_rgb(255_68_56/0.7)] transition-[background-color,transform] duration-150 hover:bg-onair-hover active:scale-[0.97]"
+              className="inline-flex h-12 items-center gap-2.5 rounded-[3px] bg-onair px-6 font-bold text-on-onair shadow-[0_8px_30px_-6px_rgb(187_154_247/0.7)] transition-[background-color,transform] duration-150 hover:bg-onair-hover active:scale-[0.97]"
             >
               <PlayIcon className="size-4" />
               Watch episode {slide.episode}

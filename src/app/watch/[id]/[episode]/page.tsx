@@ -96,7 +96,7 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
       */}
       <div
         className="relative isolate grid gap-x-8 gap-y-5 [grid-template-areas:'video'_'controls'_'nav'_'title'_'episodes'_'about'] lg:grid-cols-[minmax(0,1fr)_340px] lg:[grid-template-areas:'video_episodes'_'controls_episodes'_'nav_episodes'_'title_episodes'_'about_episodes'] lg:grid-rows-[auto_auto_auto_auto_1fr]"
-        style={{ ["--ambient" as string]: anime.coverImage.color ?? "#ff4438" }}
+        style={{ ["--ambient" as string]: anime.coverImage.color ?? "var(--color-onair)" }}
       >
         {/* Ambilight: the show's colour glows around the player. */}
         <div className="ambient-glow pointer-events-none absolute -inset-x-16 -top-16 -z-10 h-[min(75vw,620px)] opacity-100 blur-3xl saturate-150 lg:right-[340px]" aria-hidden />
@@ -129,6 +129,7 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
             cover={anime.coverImage.large}
             color={anime.coverImage.color}
             missingOn={missingOn}
+            nextHref={episode < ready ? `/watch/${anime.id}/${episode + 1}` : null}
           />
         )}
 
@@ -149,7 +150,7 @@ async function Watch({ params }: Pick<PageProps<"/watch/[id]/[episode]">, "param
             {episode < ready ? (
               <Link
                 href={`/watch/${anime.id}/${episode + 1}`}
-                className="inline-flex h-12 items-center justify-center gap-1.5 rounded-[3px] bg-onair px-4 text-sm font-semibold text-white transition-[background-color,transform] duration-150 hover:bg-onair-hover active:scale-[0.97] sm:justify-end"
+                className="inline-flex h-12 items-center justify-center gap-1.5 rounded-[3px] bg-onair px-4 text-sm font-semibold text-on-onair transition-[background-color,transform] duration-150 hover:bg-onair-hover active:scale-[0.97] sm:justify-end"
               >
                 <span className="truncate">Next: episode {episode + 1}</span>
                 <ChevronRightIcon className="size-4 shrink-0" />

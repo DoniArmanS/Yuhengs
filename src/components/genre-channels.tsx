@@ -30,7 +30,7 @@ export function GenreChannels({ channels }: { channels: Channel[] }) {
               <Link
                 href={`/search?genre=${encodeURIComponent(ch.genre)}`}
                 className="group relative isolate flex h-32 overflow-hidden rounded-[4px] border border-paper/10 p-3.5 sm:h-40 sm:p-5 transition-[border-color,transform,box-shadow] duration-300 hover:-translate-y-1 hover:border-paper/40 hover:shadow-[0_20px_50px_-20px_var(--ambient)] sm:h-44"
-                style={{ ["--ambient" as string]: lead?.color ?? "#3a4866" }}
+                style={{ ["--ambient" as string]: lead?.color ?? "var(--color-rule-strong)" }}
               >
                 {/* Lead show's art, blurred into a lit backdrop */}
                 {lead?.url ? (

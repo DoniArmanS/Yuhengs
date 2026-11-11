@@ -24,7 +24,7 @@ export function HistoryList() {
         <p className="mt-2 text-sm text-dim">Episodes you play show up here so you can pick up where you left off.</p>
         <Link
           href="/"
-          className="mt-6 inline-flex h-11 items-center rounded-[3px] bg-onair px-5 font-semibold text-white transition-colors hover:bg-onair-hover"
+          className="mt-6 inline-flex h-11 items-center rounded-[3px] bg-onair px-5 font-semibold text-on-onair transition-colors hover:bg-onair-hover"
         >
           Find something to watch
         </Link>
@@ -48,7 +48,7 @@ export function HistoryList() {
           }}
           onBlur={() => setConfirming(false)}
           className={`h-10 rounded-[3px] border px-4 text-sm font-semibold transition-colors ${
-            confirming ? "border-onair bg-onair text-white" : "border-rule text-dim hover:border-rule-strong hover:text-paper"
+            confirming ? "border-onair bg-onair text-on-onair" : "border-rule text-dim hover:border-rule-strong hover:text-paper"
           }`}
         >
           {confirming ? "Tap again to clear all" : "Clear history"}
@@ -70,7 +70,7 @@ export function HistoryList() {
                 >
                   {entry.cover ? <Image src={entry.cover} alt="" fill sizes="68px" className="object-cover" /> : null}
                   <span className="absolute inset-0 grid place-items-center bg-ink/40">
-                    <span className="grid size-9 place-items-center rounded-full bg-onair text-white">
+                    <span className="grid size-9 place-items-center rounded-full bg-onair text-on-onair">
                       <PlayIcon className="size-3.5 translate-x-px" />
                     </span>
                   </span>

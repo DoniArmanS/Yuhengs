@@ -114,6 +114,21 @@ export async function getHomeCollections() {
   };
 }
 
+/**
+ * About 200 popular anime ids for the Random button: well-known enough that a
+ * random pick is worth opening, refreshed daily, ecchi and hentai left out.
+ */
+export async function getRandomPool(): Promise<number[]> {
+  "use cache";
+  cacheLife("days");
+
+  const page = (n: number) => `p${n}: Page(page: ${n}, perPage: 50) {
+    media(type: ANIME, sort: POPULARITY_DESC, isAdult: false, format_in: [TV, MOVIE, ONA, OVA], genre_not_in: ["Ecchi", "Hentai"]) { id }
+  }`;
+  const data = await query<Record<string, { media: { id: number }[] }>>(`query { ${[1, 2, 3, 4].map(page).join("\n")} }`);
+  return Object.values(data).flatMap((p) => p.media.map((m) => m.id));
+}
+
 /** Three covers per genre, skipping shows an earlier genre already used, so tiles don't repeat. */
 function pickChannelCovers(lists: { id: number; coverImage: { large: string | null; color: string | null } }[][]) {
   const used = new Set<number>();

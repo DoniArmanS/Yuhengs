@@ -148,7 +148,7 @@ function Strip({
         </ol>
 
         <div className="pointer-events-none absolute top-0 bottom-0 w-0.5 bg-onair" style={{ left: nowLeft }} aria-hidden>
-          <span className="absolute bottom-1.5 left-1.5 rounded-[2px] bg-onair px-1.5 text-xs leading-5 font-bold text-white">
+          <span className="absolute bottom-1.5 left-1.5 rounded-[2px] bg-onair px-1.5 text-xs leading-5 font-bold text-on-onair">
             Now
           </span>
         </div>

@@ -56,8 +56,55 @@ export function clearHistory() {
   cache = EMPTY;
   try {
     localStorage.removeItem(KEY);
+    localStorage.removeItem(PROGRESS_KEY);
   } catch {}
   listeners.forEach((l) => l());
+}
+
+/*
+ * Where the viewer is inside each episode, for servers that report it. Kept
+ * apart from the history list (which changes once per episode) because this
+ * is written every few seconds while a video plays.
+ */
+const PROGRESS_KEY = "yuhengs:progress:v1";
+const PROGRESS_LIMIT = 300;
+
+export interface EpisodeProgress {
+  time: number;
+  duration: number;
+  updatedAt: number;
+}
+
+function readProgress(): Record<string, EpisodeProgress> {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(PROGRESS_KEY) ?? "{}");
+    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveProgress(id: number, episode: number, time: number, duration: number) {
+  if (!(duration > 0) || !(time >= 0)) return;
+  const all = readProgress();
+  all[`${id}:${episode}`] = { time: Math.round(time), duration: Math.round(duration), updatedAt: Date.now() };
+  const keys = Object.keys(all);
+  if (keys.length > PROGRESS_LIMIT) {
+    keys
+      .sort((a, b) => all[a].updatedAt - all[b].updatedAt)
+      .slice(0, keys.length - PROGRESS_LIMIT)
+      .forEach((k) => delete all[k]);
+  }
+  try {
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(all));
+  } catch {
+    // Storage full or blocked; the episode just won't resume.
+  }
+}
+
+export function getProgress(id: number, episode: number): EpisodeProgress | null {
+  const saved = readProgress()[`${id}:${episode}`];
+  return saved && Number.isFinite(saved.time) && Number.isFinite(saved.duration) ? saved : null;
 }
 
 function subscribe(listener: () => void) {

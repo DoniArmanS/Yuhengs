@@ -27,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0f1626",
+  themeColor: "#1a1b26",
   // Lets the layout extend under the notch/home indicator; safe-area insets pad it back.
   viewportFit: "cover",
   colorScheme: "dark",

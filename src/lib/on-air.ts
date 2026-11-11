@@ -53,6 +53,8 @@ export const getOnAirData = cache(async function getOnAirData() {
     slots,
     readyKeys,
     slides,
+    /** Episodes that aired in Japan in the last 24 hours, whether or not the servers have them yet. */
+    airedLastDay: slots.filter((s) => s.airingAt <= fetchedAt && s.airingAt > fetchedAt - 86_400).length,
     justAired: latestPerShow.slice(0, 7),
     justIn: latestPerShow.slice(0, 12),
   };

@@ -82,7 +82,7 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
   ].filter((f): f is { label: string; value: string } => Boolean(f.value));
 
   return (
-    <article className="relative isolate" style={{ ["--ambient" as string]: anime.coverImage.color ?? "#ff4438" }}>
+    <article className="relative isolate" style={{ ["--ambient" as string]: anime.coverImage.color ?? "var(--color-onair)" }}>
       {/* The show's own colour washes the top of the page. */}
       <div className="ambient-glow pointer-events-none absolute inset-x-0 top-0 -z-10 h-[760px] opacity-90" aria-hidden />
       <div className="relative h-[220px] overflow-hidden sm:h-[300px] lg:h-[340px]">

@@ -39,7 +39,7 @@ export function NewsTicker({ slots }: { slots: AiringSlot[] }) {
   return (
     <section aria-label="Just in: newly aired episodes" className="border-b border-rule bg-ink-deep">
       <div className="mx-auto flex max-w-[1400px] items-stretch">
-        <p className="relative z-10 flex shrink-0 items-center gap-2 bg-onair px-4 py-2 text-sm font-bold text-white sm:ml-6 lg:ml-10">
+        <p className="relative z-10 flex shrink-0 items-center gap-2 bg-onair px-4 py-2 text-sm font-bold text-on-onair sm:ml-6 lg:ml-10">
           <span className="size-1.5 rounded-full bg-white" aria-hidden />
           Just in
         </p>

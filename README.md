@@ -25,16 +25,20 @@ Optional: set `NEXT_PUBLIC_SITE_URL` to your deployed URL so social previews res
 | `/anime/[id]` | Details, episode list, related titles and recommendations |
 | `/watch/[id]/[episode]` | Player with server and sub/dub switching, episode list, prev/next |
 | `/schedule` | This week's airing episodes in the viewer's local time |
+| `/history` | Everything watched on this device |
+| `/random` | Redirects to a random popular anime (the header's shuffle button) |
 
-Watch history and player preferences live in `localStorage`; there are no accounts yet.
+Watch history, your place in each episode and player preferences live in `localStorage`; there are no accounts yet.
 
 ## Streaming servers
 
 Defined in [`src/lib/providers.ts`](src/lib/providers.ts), all keyed by AniList id, in fallback order: AniEmbed (default, runs in a sandboxed iframe so it can't open pop-ups), MegaPlay, VidNest. MegaPlay needs a secure page (HTTPS or localhost), which is why `dev:lan` serves HTTPS. Third-party embeds break without notice; re-test them and update that file when one stops working.
 
+[`src/lib/embed-bridge.ts`](src/lib/embed-bridge.ts) holds each server's postMessage protocol (read from the players' own scripts), which powers resume-where-you-left-off, the next-episode countdown and MegaPlay's skip-intro. Every message is optional, so a server that changes its format only loses those extras. The site's security headers (including the `frame-src` allowlist built from the server list) are in [`next.config.ts`](next.config.ts).
+
 ## Design
 
-Late-night broadcast: monitor-navy surfaces, a red on-air tally reserved for live and primary actions, amber for air times and scores, and one typeface (Archivo, self-hosted) whose width axis gives condensed titles and normal-width body text. Tokens live in [`src/app/globals.css`](src/app/globals.css).
+Late-night broadcast in the Tokyo Night palette: night-city navy surfaces, a lavender on-air tally reserved for live and primary actions (with dark text on it), cyan for air times and scores, and one typeface (Archivo, self-hosted) whose width axis gives condensed titles and normal-width body text. Tokens live in [`src/app/globals.css`](src/app/globals.css); use `text-on-onair`, not `text-white`, on any `bg-onair` fill.
 
 ## Credits
 
