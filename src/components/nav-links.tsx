@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/", label: "Home" },
+  { href: "/home", label: "Home" },
   { href: "/search", label: "Browse" },
   { href: "/schedule", label: "Schedule" },
   { href: "/history", label: "History" },
@@ -24,7 +24,7 @@ function NavList({ pathname }: { pathname: string | null }) {
     // A pill group: the current page sits in a raised pill, like a selected channel.
     <nav aria-label="Main" className="hidden items-center gap-0.5 rounded-full border border-rule bg-ink-deep p-1 md:flex">
       {LINKS.map(({ href, label }) => {
-        const active = pathname !== null && (href === "/" ? pathname === "/" : pathname.startsWith(href));
+        const active = pathname !== null && pathname.startsWith(href);
         return (
           <Link
             key={href}

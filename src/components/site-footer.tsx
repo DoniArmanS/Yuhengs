@@ -14,7 +14,7 @@ export function SiteFooter() {
         </div>
 
         <nav aria-label="Footer" className="flex flex-col text-sm">
-          <Link href="/" className="inline-flex min-h-10 items-center text-dim hover:text-paper">Home</Link>
+          <Link href="/home" className="inline-flex min-h-10 items-center text-dim hover:text-paper">Home</Link>
           <Link href="/search" className="inline-flex min-h-10 items-center text-dim hover:text-paper">Browse all anime</Link>
           <Link href="/schedule" className="inline-flex min-h-10 items-center text-dim hover:text-paper">Airing schedule</Link>
         </nav>

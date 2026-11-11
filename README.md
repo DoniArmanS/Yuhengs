@@ -20,7 +20,8 @@ Optional: set `NEXT_PUBLIC_SITE_URL` to your deployed URL so social previews res
 
 | Route | What it does |
 | --- | --- |
-| `/` | On air (the biggest new episode of the last day), just-aired list, a 24-hour "Coming up" guide, continue watching, seasonal / trending / popular / top-rated rows |
+| `/` | Landing page with its own header: a full-screen poster wall with search, how it works, why Yuhengs, FAQ, and one way in ("Open Yuhengs" → `/home`) |
+| `/home` | The dashboard: on air (the biggest new episode of the last day), just-aired list, a 24-hour "Coming up" guide, continue watching, seasonal / trending / popular / top-rated rows |
 | `/search` | Title search with genre, season, year, format, status and sort filters (all in the URL) |
 | `/anime/[id]` | Details, episode list, related titles and recommendations |
 | `/watch/[id]/[episode]` | Player with server and sub/dub switching, episode list, prev/next |

@@ -23,7 +23,7 @@ export function HistoryList() {
         <p className="condensed text-2xl font-extrabold">Nothing watched yet</p>
         <p className="mt-2 text-sm text-dim">Episodes you play show up here so you can pick up where you left off.</p>
         <Link
-          href="/"
+          href="/home"
           className="mt-6 inline-flex h-11 items-center rounded-[3px] bg-onair px-5 font-semibold text-on-onair transition-colors hover:bg-onair-hover"
         >
           Find something to watch

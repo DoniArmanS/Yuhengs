@@ -1,9 +1,9 @@
+import type { Metadata } from "next";
 import { Suspense } from "react";
 import { getHomeCollections } from "@/lib/anilist";
 import { getOnAirData } from "@/lib/on-air";
 import { firstAppearances, seasonLabel } from "@/lib/format";
-import { PosterWallHero } from "@/components/poster-wall-hero";
-import { AboutYuhengs } from "@/components/about-yuhengs";
+import { NewsTicker } from "@/components/news-ticker";
 import { OnAir } from "@/components/on-air";
 import { TonightGuide } from "@/components/tonight-guide";
 import { TopTen } from "@/components/top-ten";
@@ -11,15 +11,17 @@ import { GenreChannels } from "@/components/genre-channels";
 import { AnimeRow } from "@/components/anime-row";
 import { ContinueWatching } from "@/components/continue-watching";
 
+export const metadata: Metadata = { title: "Home" };
+
 /**
- * The page itself awaits nothing: the poster-wall hero's copy renders at once
- * and each data-backed section streams in behind its own skeleton, so
- * navigating here is instant even when caches are cold.
+ * The dashboard: what just aired, what's next, and the catalog. (The landing
+ * page at / is the front door; this is where viewers actually browse.) The
+ * page itself awaits nothing: each data-backed section streams in behind its
+ * own skeleton, so navigating here is instant even when caches are cold.
  */
 export default function HomePage() {
   return (
     <>
-      <PosterWallHero />
       <Suspense fallback={<OnAirSkeleton />}>
         <LiveSections />
       </Suspense>
@@ -30,14 +32,18 @@ export default function HomePage() {
       <Suspense fallback={<RowsSkeleton />}>
         <CatalogSections />
       </Suspense>
-      <AboutYuhengs />
     </>
   );
 }
 
 async function LiveSections() {
-  const { slides, justAired } = await getOnAirData();
-  return <OnAir slides={slides} justAired={justAired} />;
+  const { slides, justAired, justIn } = await getOnAirData();
+  return (
+    <>
+      <NewsTicker slots={justIn} />
+      <OnAir slides={slides} justAired={justAired} />
+    </>
+  );
 }
 
 async function Guide() {
@@ -68,6 +74,7 @@ async function CatalogSections() {
 function OnAirSkeleton() {
   return (
     <div aria-busy="true" aria-label="Loading new episodes">
+      <div className="h-9 border-b border-rule bg-ink-deep/80" />
       <div className="mx-auto max-w-[1400px] px-4 pt-6 sm:px-6 lg:px-10 lg:pt-8">
         <div className="mb-4 h-5 w-52 animate-pulse rounded-[2px] bg-panel" />
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_380px]">

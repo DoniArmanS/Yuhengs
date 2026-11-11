@@ -6,6 +6,7 @@ import { getHomeCollections } from "@/lib/anilist";
 import { getOnAirData } from "@/lib/on-air";
 import { displayTitle } from "@/lib/format";
 import { pickWallCovers, wallColumns } from "@/lib/poster-wall";
+import { ContinueChip } from "./continue-chip";
 import { ChevronRightIcon, PlayIcon } from "./icons";
 
 /** Where each column starts and how long one loop takes, so the rows never line up. */
@@ -13,20 +14,20 @@ const COLUMN_OFFSETS = ["0px", "-150px", "-70px", "-230px"];
 const COLUMN_SECONDS = [70, 80, 95, 105];
 
 /**
- * The landing hero: the pitch and a search box on the left, a slowly moving
- * wall of about 32 different covers on the right. The copy needs no data, so
- * it renders at once; the wall, the top searches and the episode count stream
- * in behind it.
+ * The landing hero, one screen tall: the pitch and a search box on the left,
+ * a slowly moving wall of about 32 different covers on the right. The copy
+ * needs no data, so it renders at once; the wall, the top searches and the
+ * episode count stream in behind it. The landing header floats over its top.
  */
 export function PosterWallHero() {
   return (
-    <section aria-labelledby="hero-title" className="relative isolate overflow-hidden bg-ink-deep">
+    <section aria-labelledby="hero-title" className="relative isolate flex min-h-[100svh] flex-col overflow-hidden bg-ink-deep">
       <Suspense fallback={null}>
         <PosterWall />
       </Suspense>
       <div className="wall-shade pointer-events-none absolute inset-0 -z-10" aria-hidden />
 
-      <div className="mx-auto max-w-[1400px] px-4 pt-10 pb-20 sm:px-6 sm:pt-14 lg:px-10 lg:pt-16 lg:pb-28">
+      <div className="mx-auto flex w-full max-w-[1400px] flex-1 items-center px-4 pt-24 pb-20 sm:px-6 lg:px-10 lg:pt-28 lg:pb-24">
         <div className="flex max-w-[720px] flex-col gap-6">
           <p className="inline-flex h-8 items-center gap-2 self-start rounded-full border border-rule-strong bg-panel/70 px-3.5 text-[13px] font-semibold text-dim">
             <span className="tally size-1.5 rounded-full bg-onair" aria-hidden />
@@ -69,9 +70,11 @@ export function PosterWallHero() {
             </Suspense>
           </Form>
 
+          <ContinueChip />
+
           <div className="flex flex-wrap gap-3">
             <Link
-              href="#on-air"
+              href="/home"
               className="inline-flex h-13 items-center gap-2.5 rounded-full bg-onair px-6 font-bold text-on-onair shadow-[0_14px_34px_-14px_rgb(187_154_247/0.85)] transition-[background-color,transform] duration-150 hover:bg-onair-hover active:scale-[0.97]"
             >
               <PlayIcon className="size-4" />

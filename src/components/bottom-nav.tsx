@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { CalendarIcon, HistoryIcon, HomeIcon, SearchIcon } from "./icons";
 
 const TABS = [
-  { href: "/", label: "Home", Icon: HomeIcon },
+  { href: "/home", label: "Home", Icon: HomeIcon },
   { href: "/search", label: "Search", Icon: SearchIcon },
   { href: "/schedule", label: "Schedule", Icon: CalendarIcon },
   { href: "/history", label: "History", Icon: HistoryIcon },
@@ -32,7 +32,7 @@ function Bar({ pathname }: { pathname: string | null }) {
     >
       <ul className="mx-auto grid h-16 max-w-md grid-cols-4">
         {TABS.map(({ href, label, Icon }) => {
-          const active = pathname !== null && (href === "/" ? pathname === "/" : pathname.startsWith(href));
+          const active = pathname !== null && pathname.startsWith(href);
           return (
             <li key={href}>
               <Link

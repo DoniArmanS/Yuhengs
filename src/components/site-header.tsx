@@ -9,7 +9,7 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-40 border-b border-rule bg-ink pt-[env(safe-area-inset-top)]">
       <div className="mx-auto flex h-16 max-w-[1400px] items-center gap-6 px-4 sm:px-6 lg:px-10">
-        <Link href="/" className="shrink-0" aria-label="Yuhengs home">
+        <Link href="/home" className="shrink-0" aria-label="Yuhengs home">
           <Logo />
         </Link>
 
