@@ -40,7 +40,7 @@ export interface AnimeDetail extends AnimeCard {
   popularity: number | null;
   studios: { nodes: { name: string }[] };
   relations: {
-    edges: { relationType: string; node: AnimeCard & { type: "ANIME" | "MANGA" } }[];
+    edges: { relationType: string; node: AnimeCard & { type: "ANIME" | "MANGA"; countryOfOrigin: string | null } }[];
   };
   recommendations: { nodes: { mediaRecommendation: AnimeCard | null }[] };
 }

@@ -22,6 +22,8 @@ import { LiveCheck } from "@/components/live-check";
 import { ExpandableText } from "@/components/expandable-text";
 import { latestReadyEpisode } from "@/lib/availability";
 import { StarIcon } from "@/components/icons";
+import { ReadTheManga } from "@/components/manga/read-the-manga";
+import { mangaKind, type CountryOfOrigin } from "@/lib/manga/format";
 
 export async function generateMetadata(props: PageProps<"/anime/[id]">): Promise<Metadata> {
   const { id } = await props.params;
@@ -66,6 +68,10 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
   const related = anime.relations.edges
     .filter((e) => e.node.type === "ANIME" && e.node.format !== "MUSIC")
     .map((e) => e.node as AnimeCard);
+  // The manga it was adapted from (light novels can't be read here).
+  const source = anime.relations.edges.find(
+    (e) => e.relationType === "SOURCE" && e.node.type === "MANGA" && (e.node.format as string | null) !== "NOVEL",
+  )?.node;
   const recommended = anime.recommendations.nodes
     .map((n) => n.mediaRecommendation)
     .filter((m): m is AnimeCard => m !== null);
@@ -181,6 +187,15 @@ async function AnimeDetail({ params }: Pick<PageProps<"/anime/[id]">, "params">)
             <ExpandableText
               paragraphs={description.split(/\n+/)}
               className="mt-6 max-w-[68ch] leading-relaxed text-paper/85 md:mt-8"
+            />
+          ) : null}
+
+          {source ? (
+            <ReadTheManga
+              id={source.id}
+              title={displayTitle(source)}
+              cover={source.coverImage.large}
+              kind={mangaKind(source.countryOfOrigin as CountryOfOrigin | null)}
             />
           ) : null}
 

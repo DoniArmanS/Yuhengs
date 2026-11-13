@@ -31,6 +31,25 @@ Optional: set `NEXT_PUBLIC_SITE_URL` to your deployed URL so social previews res
 
 Watch history, your place in each episode and player preferences live in `localStorage`; there are no accounts yet.
 
+### Manga (private)
+
+| Route | What it does |
+| --- | --- |
+| `/manga` | Manga dashboard: continue reading, newest uploads (Atsumaru's feed), trending manga and manhwa, popular, top rated |
+| `/manga/[id]` | A series by AniList id: details, "Also an anime" link, official reading links, every chapter merged from all sources with a group filter |
+| `/read/[id]/[chapter]` | Full-screen reader: single page (right-to-left or left-to-right) or long strip, page tone (normal / dim / night), upload picker |
+| `/manga/search`, `/manga/library` | Manga search; everything you've started reading on this device |
+| `/manga/unlock` | Password page |
+
+The manga section is for the site owner only. Set `MANGA_PASSWORD` in the environment (Vercel → Settings → Environment Variables) and redeploy; without it the section is open in `next dev` and locked in production. [`src/proxy.ts`](src/proxy.ts) checks the cookie on every `/manga`, `/read` and `/api/manga` request. Anime pages show "Read the manga" and the nav shows "Manga" only in a browser that has unlocked it.
+
+Chapters come from [`src/lib/manga/`](src/lib/manga/), merged per chapter number in [`index.ts`](src/lib/manga/index.ts):
+
+- **WeebCentral** (HTML) and **Bato** (`bato1.com`: JSON chapter list, HTML search and reader). Their image hosts serve pages to other sites, so these are read inside Yuhengs. Bato has no AniList ids and is matched by exact title and kind.
+- **Atsumaru** (JSON API): every scanlation group, and each series' AniList and WeebCentral ids, so it drives the matching. Its image host refuses other sites, so its uploads are listed but open on atsu.moe.
+
+Page images load in the viewer's browser straight from the source, with Yuhengs' real Referer: nothing is proxied through Vercel (its Acceptable Use Policy forbids proxying and hot-link hosting) and no header is faked. Each source can fail on its own, and the reader falls back to the next upload. Sites behind captchas or browser checks (comix.to, MangaFire, Comick, Kagane) are deliberately not used; if a source here starts blocking, switch it off rather than work around it.
+
 ## Streaming servers
 
 Defined in [`src/lib/providers.ts`](src/lib/providers.ts), all keyed by AniList id, in fallback order: AniEmbed (default, runs in a sandboxed iframe so it can't open pop-ups), MegaPlay, VidNest. MegaPlay needs a secure page (HTTPS or localhost), which is why `dev:lan` serves HTTPS. Third-party embeds break without notice; re-test them and update that file when one stops working.

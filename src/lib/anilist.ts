@@ -28,7 +28,7 @@ const CARD_FIELDS = `
 /** Genres offered as "channels" on the home page, each shown with its most popular covers. */
 export const CHANNEL_GENRES = ["Action", "Romance", "Comedy", "Fantasy", "Slice of Life", "Mystery", "Sci-Fi", "Sports"];
 
-async function query<T>(document: string, variables: Record<string, unknown> = {}): Promise<T> {
+export async function query<T>(document: string, variables: Record<string, unknown> = {}): Promise<T> {
   const res = await fetch(ENDPOINT, {
     method: "POST",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
@@ -173,7 +173,7 @@ export async function getAnime(id: number): Promise<AnimeDetail | null> {
         relations {
           edges {
             relationType(version: 2)
-            node { ${CARD_FIELDS} type }
+            node { ${CARD_FIELDS} type countryOfOrigin }
           }
         }
         recommendations(perPage: 12, sort: RATING_DESC) {

@@ -21,6 +21,11 @@
   --color-paper: #c0caf5;
   --color-dim: #a9b1d6;
   --color-faint: #8189b3;
+  /* Manga ink details: panel frames, their offset shadow, screentone dots.
+     The manga section redefines all of these in .theme-moon. */
+  --color-frame: #737aa2;
+  --color-shadow: #0c0e14;
+  --color-tone: rgb(192 202 245 / 0.08);
 
   --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
 
@@ -344,4 +349,44 @@ label {
     scroll-behavior: auto !important;
     transition-duration: 0s !important;
   }
+}
+
+/* ---------- Manga ---------- */
+
+/*
+ * The manga section wears Tokyo Night Moon (folke/tokyonight.nvim), the anime
+ * site's softer sibling: navy #222436 and one lavender accent. Pages are
+ * mostly white already, so the frame around them stays dark. Redefining the
+ * tokens here re-colours every utility inside. dim and faint are lifted from
+ * Moon's #828bb8 so small text passes 4.5:1 on panels.
+ */
+.theme-moon {
+  --color-ink: #222436;
+  --color-ink-deep: #1e2030;
+  --color-panel: #2a2e48;
+  --color-panel-raised: #2f334d;
+  --color-rule: #2f334d;
+  --color-rule-strong: #3b4261;
+  --color-onair: #c099ff;
+  --color-onair-hover: #d4b8ff;
+  --color-on-onair: #1e2030;
+  --color-guide: #c099ff;
+  --color-paper: #c8d3f5;
+  --color-dim: #9aa3cf;
+  --color-faint: #959ecb;
+  --color-frame: #828bb8;
+  --color-shadow: #191b29;
+  --color-tone: rgb(200 211 245 / 0.08);
+}
+
+/* Screentone: the dot texture of printed manga. */
+@utility tone {
+  background-image: radial-gradient(var(--color-tone) 1.1px, transparent 1.4px);
+  background-size: 7px 7px;
+}
+
+/* A comic panel: inked border and a hard offset shadow. */
+@utility ink-frame {
+  border: 2px solid var(--color-frame);
+  box-shadow: 4px 4px 0 var(--color-shadow);
 }
