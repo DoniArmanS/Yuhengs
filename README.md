@@ -1,14 +1,56 @@
+<div align="center">
+
 # Yuhengs
 
-A free, non-commercial anime fan site styled like a late-night TV channel: what just aired, what's on tonight, and every other show on AniList, with sub and dub.
+**Every new episode. Sub & dub. Free.**
 
-**Live:** [yuhengs.vercel.app](https://yuhengs.vercel.app)
+A non-commercial anime fan site styled like a late-night TV channel:<br>
+what just aired, what's on tonight, and every other show on AniList.
+
+[**Open the live site →**](https://yuhengs.vercel.app)
+
+![Next.js 16](https://img.shields.io/badge/Next.js-16-1a1b26?logo=nextdotjs&logoColor=c0caf5)
+![React 19](https://img.shields.io/badge/React-19-1a1b26?logo=react&logoColor=7dcfff)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-1a1b26?logo=typescript&logoColor=7aa2f7)
+![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-1a1b26?logo=tailwindcss&logoColor=7dcfff)
+![Deployed on Vercel](https://img.shields.io/badge/Vercel-sin1-1a1b26?logo=vercel&logoColor=c0caf5)
+
+<img src="docs/screenshots/landing.webp" alt="The Yuhengs landing page: a headline reading 'Every new episode. Sub and dub. Free.', a search bar with top searches, and a slowly scrolling wall of anime posters" width="100%">
+
+</div>
+
+## What's inside
 
 - **Poster-wall landing page** with search and the day's top searches
 - **Dashboard** built around the broadcast day: the biggest new episode, a just-aired list, a 24-hour "Coming up" guide
 - **Player** that remembers where you stopped, counts down to the next episode, and can skip intros
 - **Browse and schedule**: filter by genre, season, year, format and status; see the week's airings in your own time zone
 - **No accounts**: history and progress stay in your browser
+
+## Screenshots
+
+### Dashboard
+
+![The dashboard: an "On air" spotlight for the newest big episode beside a "Just aired" list, with a "Just in" ticker across the top](docs/screenshots/home.webp)
+
+### Anime page
+
+![An anime page for Frieren: banner art, cover, title, score, genres, a "Watch episode 1" button and the synopsis](docs/screenshots/anime.webp)
+
+<table>
+  <tr>
+    <td width="50%"><b>Browse</b><br><img src="docs/screenshots/search.webp" alt="Browse page with a search bar, genre, season, year, format, status and sort filters, and a grid of posters"></td>
+    <td width="50%"><b>Schedule</b><br><img src="docs/screenshots/schedule.webp" alt="Airing schedule with a tab for each day of the week and episodes listed by local air time, marked 'Watch now' or 'Not ready yet'"></td>
+  </tr>
+</table>
+
+### On a phone
+
+<p align="center">
+  <img src="docs/screenshots/landing-phone.webp" alt="The landing page on a phone" width="32%">
+  &nbsp;&nbsp;
+  <img src="docs/screenshots/home-phone.webp" alt="The dashboard on a phone, with the tab bar at the bottom" width="32%">
+</p>
 
 ## Stack
 
