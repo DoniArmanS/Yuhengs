@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookIcon, CalendarIcon, HistoryIcon, HomeIcon, SearchIcon } from "./icons";
+import { CalendarIcon, HistoryIcon, HomeIcon, SearchIcon } from "./icons";
 
 const TABS = [
   { href: "/home", label: "Home", Icon: HomeIcon },
   { href: "/search", label: "Search", Icon: SearchIcon },
   { href: "/schedule", label: "Schedule", Icon: CalendarIcon },
   { href: "/history", label: "History", Icon: HistoryIcon },
-  { href: "/manga", label: "Manga", Icon: BookIcon },
 ];
 
 /** Reads the URL, so it must sit inside <Suspense>; BottomNavStatic is its fallback. */
@@ -31,7 +30,7 @@ function Bar({ pathname }: { pathname: string | null }) {
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-ink pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      <ul className="mx-auto grid h-16 max-w-md grid-cols-5">
+      <ul className="mx-auto grid h-16 max-w-md grid-cols-4">
         {TABS.map(({ href, label, Icon }) => {
           const active = pathname !== null && pathname.startsWith(href);
           return (

@@ -1,64 +1,117 @@
 # Yuhengs
 
-A free, non-commercial anime streaming fan site styled like a late-night TV channel: what just aired, what's on next, and everything else on AniList.
+A free, non-commercial anime fan site styled like a late-night TV channel: what just aired, what's on tonight, and every other show on AniList, with sub and dub.
 
-Built with Next.js 16 (App Router, Cache Components), React 19, TypeScript and Tailwind CSS 4. Anime data comes from the [AniList GraphQL API](https://docs.anilist.co); video plays from third-party embed servers. Nothing is hosted here.
+**Live:** [yuhengs.vercel.app](https://yuhengs.vercel.app)
+
+- **Poster-wall landing page** with search and the day's top searches
+- **Dashboard** built around the broadcast day: the biggest new episode, a just-aired list, a 24-hour "Coming up" guide
+- **Player** that remembers where you stopped, counts down to the next episode, and can skip intros
+- **Browse and schedule**: filter by genre, season, year, format and status; see the week's airings in your own time zone
+- **No accounts**: history and progress stay in your browser
+
+## Stack
+
+| | |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Cache Components, Partial Prefetching), React 19 |
+| Language | TypeScript |
+| Styling | Tailwind CSS 4, self-hosted Archivo variable font |
+| Data | [AniList GraphQL API](https://docs.anilist.co) |
+| Video | Third-party embed servers (nothing is hosted here) |
+| Hosting | Vercel, Singapore region (`sin1`) |
 
 ## Run it
+
+Needs Node.js 20 or newer.
 
 ```bash
 npm install
 npm run dev        # http://localhost:3000
 npm run dev:lan    # HTTPS on your local network, for testing on a phone
-npm run dev:clean  # clears the dev cache first; use it if styles ever look out of date
+npm run dev:clean  # clears the dev cache first; use it if styles look out of date
 npm run build && npm start
+npm run lint
 ```
 
-Optional: set `NEXT_PUBLIC_SITE_URL` to your deployed URL so social previews resolve correctly.
+| Variable | Needed | What it does |
+| --- | --- | --- |
+| `NEXT_PUBLIC_SITE_URL` | Optional | The deployed URL, so link previews on social media resolve |
 
 ## Pages
 
-| Route | What it does |
+| Route | What it shows |
 | --- | --- |
-| `/` | Landing page with its own header: a full-screen poster wall with search, how it works, why Yuhengs, FAQ, and one way in ("Open Yuhengs" → `/home`) |
-| `/home` | The dashboard: on air (the biggest new episode of the last day), just-aired list, a 24-hour "Coming up" guide, continue watching, seasonal / trending / popular / top-rated rows |
-| `/search` | Title search with genre, season, year, format, status and sort filters (all in the URL) |
-| `/anime/[id]` | Details, episode list, related titles and recommendations |
-| `/watch/[id]/[episode]` | Player with server and sub/dub switching, episode list, prev/next |
-| `/schedule` | This week's airing episodes in the viewer's local time |
+| `/` | Landing page: full-screen poster wall, search, how it works, FAQ, and "Open Yuhengs" into the dashboard |
+| `/home` | Dashboard: on air now, just aired, coming up in the next 24 hours, continue watching, seasonal / trending / popular / top-rated rows |
+| `/search` | Search with genre, season, year, format, status and sort filters, all kept in the URL |
+| `/anime/[id]` | Details, the episodes ready to watch, related titles and recommendations |
+| `/watch/[id]/[episode]` | Player with server and sub/dub switching, episode list, previous and next |
+| `/schedule` | This week's airings in the viewer's local time |
 | `/history` | Everything watched on this device |
-| `/random` | Redirects to a random popular anime (the header's shuffle button) |
+| `/random` | Jumps to a random popular anime (the shuffle button in the header) |
 
-Watch history, your place in each episode and player preferences live in `localStorage`; there are no accounts yet.
+## How it works
 
-### Manga
+### Data and caching
 
-| Route | What it does |
-| --- | --- |
-| `/manga` | Manga dashboard: continue reading, newest uploads (Atsumaru's feed), trending manga and manhwa, popular, top rated |
-| `/manga/[id]` | A series by AniList id: details, "Also an anime" link, official reading links, every chapter merged from all sources with a group filter |
-| `/read/[id]/[chapter]` | Full-screen reader: single page (right-to-left or left-to-right) or long strip, page tone (normal / dim / night), upload picker |
-| `/manga/search`, `/manga/library` | Manga search; everything you've started reading on this device |
+All anime data comes from AniList through [`src/lib/anilist.ts`](src/lib/anilist.ts). Queries are cached with Cache Components (`"use cache"` with `cacheLife`): the airing schedule refreshes every few minutes, collections and details every hour, the random pool daily. Pages render a static shell first and stream in what needs the request.
 
-The manga pages are open to everyone but marked `noindex`, so search engines leave them out. Anime pages link to the manga they were adapted from ("Read the manga"), and manga pages link back ("Also an anime").
+### Streaming servers
 
-Chapters come from [`src/lib/manga/`](src/lib/manga/), merged per chapter number in [`index.ts`](src/lib/manga/index.ts):
+[`src/lib/providers.ts`](src/lib/providers.ts) lists the embed servers, keyed by AniList id, in fallback order:
 
-- **WeebCentral** (HTML) and **Bato** (`bato1.com`: JSON chapter list, HTML search and reader). Their image hosts serve pages to other sites, so these are read inside Yuhengs. Bato has no AniList ids and is matched by exact title and kind.
-- **Atsumaru** (JSON API): every scanlation group, and each series' AniList and WeebCentral ids, so it drives the matching. Its image host refuses other sites, so its uploads are listed but open on atsu.moe.
+1. **MegaPlay** (default): its controls respond on the first tap. It needs a secure page (HTTPS or localhost), which is why `dev:lan` serves HTTPS.
+2. **AniEmbed**: runs in a sandboxed iframe so its ad layer can't open pop-ups.
+3. **VidNest**
 
-Page images load in the viewer's browser straight from the source, with Yuhengs' real Referer: nothing is proxied through Vercel (its Acceptable Use Policy forbids proxying and hot-link hosting) and no header is faked. Each source can fail on its own, and the reader falls back to the next upload. Sites behind captchas or browser checks (comix.to, MangaFire, Comick, Kagane) are deliberately not used; if a source here starts blocking, switch it off rather than work around it.
+Third-party embeds break without notice. When one stops working, re-test it and update that file; the comment there records what was tested and what was removed.
 
-## Streaming servers
+[`src/lib/availability.ts`](src/lib/availability.ts) checks which episodes the servers actually have before offering them, so the site never links to an empty player.
 
-Defined in [`src/lib/providers.ts`](src/lib/providers.ts), all keyed by AniList id, in fallback order: AniEmbed (default, runs in a sandboxed iframe so it can't open pop-ups), MegaPlay, VidNest. MegaPlay needs a secure page (HTTPS or localhost), which is why `dev:lan` serves HTTPS. Third-party embeds break without notice; re-test them and update that file when one stops working.
+### Player extras
 
-[`src/lib/embed-bridge.ts`](src/lib/embed-bridge.ts) holds each server's postMessage protocol (read from the players' own scripts), which powers resume-where-you-left-off, the next-episode countdown and MegaPlay's skip-intro. Every message is optional, so a server that changes its format only loses those extras. The site's security headers (including the `frame-src` allowlist built from the server list) are in [`next.config.ts`](next.config.ts).
+[`src/lib/embed-bridge.ts`](src/lib/embed-bridge.ts) holds each server's `postMessage` protocol, read from the players' own scripts. It powers:
+
+- resuming where you stopped, with a "Start over" option
+- the next-episode countdown near the end of an episode
+- MegaPlay's skip-intro
+
+Every message is optional: a server that changes its format only loses these extras, never playback.
+
+### Security
+
+[`next.config.ts`](next.config.ts) sets the security headers. The Content Security Policy only allows the streaming servers in iframes (the `frame-src` list is built from the server list, so the two can't drift apart) and stops other sites from framing Yuhengs.
+
+### Saved in the browser
+
+Watch history, your place in each episode and player preferences live in `localStorage` ([`src/lib/history.ts`](src/lib/history.ts)). Nothing is sent to a server, and clearing history wipes all of it.
 
 ## Design
 
-Late-night broadcast in the Tokyo Night palette: night-city navy surfaces, a lavender on-air tally reserved for live and primary actions (with dark text on it), cyan for air times and scores, and one typeface (Archivo, self-hosted) whose width axis gives condensed titles and normal-width body text. Tokens live in [`src/app/globals.css`](src/app/globals.css); use `text-on-onair`, not `text-white`, on any `bg-onair` fill.
+A late-night broadcast in the [Tokyo Night](https://github.com/folke/tokyonight.nvim) palette:
+
+- night-city navy surfaces
+- a lavender "on-air" tally, kept for live marks and primary actions
+- cyan for air times and scores
+- one typeface, Archivo, whose width axis gives both condensed titles and normal body text
+
+Colour tokens live in [`src/app/globals.css`](src/app/globals.css). On any `bg-onair` fill use `text-on-onair`, not `text-white`: the lavender is light and needs dark text.
+
+## Project layout
+
+```
+src/
+  app/
+    (landing)/        landing page with its own header
+    (site)/           everything with the site header and tab bar
+    random/           /random redirect
+    api/episodes/     episode availability for the client
+  components/         UI, one component per file
+  lib/                AniList client, servers, history, formatting
+scripts/dev-lan.mjs   HTTPS dev server for phones on the LAN
+```
 
 ## Credits
 
-Anime data and artwork from AniList. Yuhengs is not affiliated with AniList or any streaming provider.
+Anime data and artwork from [AniList](https://anilist.co). Yuhengs is a non-commercial fan project and is not affiliated with AniList or any streaming provider.

@@ -8,7 +8,6 @@ const LINKS = [
   { href: "/search", label: "Browse" },
   { href: "/schedule", label: "Schedule" },
   { href: "/history", label: "History" },
-  { href: "/manga", label: "Manga" },
 ];
 
 /** Reads the URL, so it must sit inside <Suspense>; NavLinksStatic is its fallback. */
