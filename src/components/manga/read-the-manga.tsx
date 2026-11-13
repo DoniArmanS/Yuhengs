@@ -1,16 +1,9 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import { useMangaUnlocked } from "@/lib/manga/reading";
 import { BookIcon } from "../icons";
 
-/**
- * On an anime page: the manga it was adapted from. The manga section is
- * private, so this only shows in a browser that has opened it.
- */
+/** On an anime page: the manga it was adapted from. */
 export function ReadTheManga({ id, title, cover, kind }: { id: number; title: string; cover: string | null; kind: string }) {
-  if (!useMangaUnlocked()) return null;
   return (
     <Link
       href={`/manga/${id}`}

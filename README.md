@@ -31,7 +31,7 @@ Optional: set `NEXT_PUBLIC_SITE_URL` to your deployed URL so social previews res
 
 Watch history, your place in each episode and player preferences live in `localStorage`; there are no accounts yet.
 
-### Manga (private)
+### Manga
 
 | Route | What it does |
 | --- | --- |
@@ -39,9 +39,8 @@ Watch history, your place in each episode and player preferences live in `localS
 | `/manga/[id]` | A series by AniList id: details, "Also an anime" link, official reading links, every chapter merged from all sources with a group filter |
 | `/read/[id]/[chapter]` | Full-screen reader: single page (right-to-left or left-to-right) or long strip, page tone (normal / dim / night), upload picker |
 | `/manga/search`, `/manga/library` | Manga search; everything you've started reading on this device |
-| `/manga/unlock` | Password page |
 
-The manga section is for the site owner only. Set `MANGA_PASSWORD` in the environment (Vercel → Settings → Environment Variables) and redeploy; without it the section is open in `next dev` and locked in production. [`src/proxy.ts`](src/proxy.ts) checks the cookie on every `/manga`, `/read` and `/api/manga` request. Anime pages show "Read the manga" and the nav shows "Manga" only in a browser that has unlocked it.
+The manga pages are open to everyone but marked `noindex`, so search engines leave them out. Anime pages link to the manga they were adapted from ("Read the manga"), and manga pages link back ("Also an anime").
 
 Chapters come from [`src/lib/manga/`](src/lib/manga/), merged per chapter number in [`index.ts`](src/lib/manga/index.ts):
 

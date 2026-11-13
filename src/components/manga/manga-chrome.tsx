@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { Logo } from "../logo";
 import { BookmarkIcon, SearchIcon } from "../icons";
-import { lock } from "@/app/(manga)/manga/unlock/actions";
 
 /** Manga header: the Anime | Manga switch, manga search and the library. */
 export function MangaHeader() {
@@ -56,11 +55,11 @@ export function MangaHeader() {
 export function MangaFooter() {
   return (
     <footer className="tone mt-24 border-t-2 border-frame/40 bg-ink-deep">
-      <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-10 sm:px-6 md:flex-row md:items-end md:justify-between lg:px-10">
+      <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-4 py-10 sm:px-6 lg:px-10">
         <div className="max-w-xl">
           <Logo />
           <p className="mt-3 text-sm leading-relaxed text-dim">
-            Your private manga shelf. Chapters come from WeebCentral, Bato and Atsumaru, credited to the groups
+            Chapters come from WeebCentral, Bato and Atsumaru, credited to the groups
             that scanned them; covers and details from{" "}
             <a href="https://anilist.co" className="text-paper underline-offset-2 hover:underline" rel="noreferrer" target="_blank">
               AniList
@@ -68,14 +67,6 @@ export function MangaFooter() {
             . Yuhengs stores no pages.
           </p>
         </div>
-        <form action={lock}>
-          <button
-            type="submit"
-            className="inline-flex h-11 items-center border-2 border-rule-strong px-4 text-sm font-semibold text-dim transition-colors hover:border-frame hover:text-paper"
-          >
-            Lock manga on this device
-          </button>
-        </form>
       </div>
     </footer>
   );

@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: { default: "Reader", template: "%s · Yuhengs manga" },
-  description: "A private manga shelf: every chapter from every group, merged into one list.",
+  description: "Read manga, manhwa and manhua: every chapter from every group, merged into one list.",
   robots: { index: false, follow: false },
 };
 

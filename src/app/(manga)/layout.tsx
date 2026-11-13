@@ -5,7 +5,7 @@ import { MangaBottomNav, MangaBottomNavStatic } from "@/components/manga/manga-b
 
 export const metadata: Metadata = {
   title: { default: "Manga", template: "%s · Yuhengs manga" },
-  description: "A private manga shelf: every chapter from every group, merged into one list.",
+  description: "Read manga, manhwa and manhua: every chapter from every group, merged into one list.",
   robots: { index: false, follow: false },
 };
 

@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMangaUnlocked } from "@/lib/manga/reading";
 
 const LINKS = [
   { href: "/home", label: "Home" },
   { href: "/search", label: "Browse" },
   { href: "/schedule", label: "Schedule" },
   { href: "/history", label: "History" },
+  { href: "/manga", label: "Manga" },
 ];
 
 /** Reads the URL, so it must sit inside <Suspense>; NavLinksStatic is its fallback. */
@@ -21,12 +21,10 @@ export function NavLinksStatic() {
 }
 
 function NavList({ pathname }: { pathname: string | null }) {
-  // The manga section is private; its link only shows in a browser that has opened it.
-  const links = useMangaUnlocked() ? [...LINKS, { href: "/manga", label: "Manga" }] : LINKS;
   return (
     // A pill group: the current page sits in a raised pill, like a selected channel.
     <nav aria-label="Main" className="hidden items-center gap-0.5 rounded-full border border-rule bg-ink-deep p-1 md:flex">
-      {links.map(({ href, label }) => {
+      {LINKS.map(({ href, label }) => {
         const active = pathname !== null && pathname.startsWith(href);
         return (
           <Link

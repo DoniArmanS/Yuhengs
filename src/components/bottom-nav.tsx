@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useMangaUnlocked } from "@/lib/manga/reading";
 import { BookIcon, CalendarIcon, HistoryIcon, HomeIcon, SearchIcon } from "./icons";
 
 const TABS = [
@@ -10,6 +9,7 @@ const TABS = [
   { href: "/search", label: "Search", Icon: SearchIcon },
   { href: "/schedule", label: "Schedule", Icon: CalendarIcon },
   { href: "/history", label: "History", Icon: HistoryIcon },
+  { href: "/manga", label: "Manga", Icon: BookIcon },
 ];
 
 /** Reads the URL, so it must sit inside <Suspense>; BottomNavStatic is its fallback. */
@@ -26,15 +26,13 @@ export function BottomNavStatic() {
  * home indicator. Tablets and up use the header links instead.
  */
 function Bar({ pathname }: { pathname: string | null }) {
-  // The manga section is private; its tab only shows in a browser that has opened it.
-  const tabs = useMangaUnlocked() ? [...TABS, { href: "/manga", label: "Manga", Icon: BookIcon }] : TABS;
   return (
     <nav
       aria-label="Main"
       className="fixed inset-x-0 bottom-0 z-40 border-t border-rule bg-ink pb-[env(safe-area-inset-bottom)] md:hidden"
     >
-      <ul className={`mx-auto grid h-16 max-w-md ${tabs.length === 5 ? "grid-cols-5" : "grid-cols-4"}`}>
-        {tabs.map(({ href, label, Icon }) => {
+      <ul className="mx-auto grid h-16 max-w-md grid-cols-5">
+        {TABS.map(({ href, label, Icon }) => {
           const active = pathname !== null && pathname.startsWith(href);
           return (
             <li key={href}>

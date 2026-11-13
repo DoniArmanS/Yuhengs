@@ -1,7 +1,6 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { HINT_COOKIE } from "./gate";
 
 /*
  * Reading progress lives in this browser only, like the anime watch history:
@@ -130,16 +129,5 @@ export function useFinishedChapters(id: number): string[] {
     subscribe,
     () => readFinished()[id] ?? NO_CHAPTERS,
     () => NO_CHAPTERS,
-  );
-}
-
-const noSubscribe = () => () => {};
-
-/** True once this browser has opened the manga section (src/proxy.ts sets the hint). */
-export function useMangaUnlocked(): boolean {
-  return useSyncExternalStore(
-    noSubscribe,
-    () => document.cookie.split("; ").some((c) => c === `${HINT_COOKIE}=1`),
-    () => false,
   );
 }
